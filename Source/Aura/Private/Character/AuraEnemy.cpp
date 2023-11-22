@@ -7,13 +7,13 @@
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystem/AuraAttributeSet.h"
-#include "Chaos/PBDRigidsEvolution.h"
 #include "Components/WidgetComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "UI/Widgets/AuraUserWidget.h"
 
 AAuraEnemy::AAuraEnemy()
 {
+	PrimaryActorTick.bCanEverTick = true;
 	GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 	AbilitySystemComponent = CreateDefaultSubobject<UAuraAbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
@@ -79,6 +79,13 @@ void AAuraEnemy::BeginPlay()
 	}
 	
 	
+}
+
+void AAuraEnemy::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	UE_LOG(LogTemp,Warning, TEXT("speed: %f"), GetCharacterMovement()->MaxWalkSpeed);
+	UE_LOG(LogTemp,Warning, TEXT("speed: %hhd"), bHitReacting);
 }
 
 void AAuraEnemy::InitAbilityActorInfo()
