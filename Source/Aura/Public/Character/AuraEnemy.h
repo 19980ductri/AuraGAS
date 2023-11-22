@@ -11,9 +11,9 @@
 
 class UWidgetComponent;
 class UAnimMontage;
-/**
- * 
- */
+class UBehaviorTree;
+class AAuraAIController;
+
 UCLASS()
 class AURA_API AAuraEnemy : public AAuraCharacterBase, public IEnemyInterface
 {
@@ -42,12 +42,20 @@ public:
 	UPROPERTY(EditAnywhere, Category= "Combat", BlueprintReadOnly)
 	float LifeSpan = 5;
 	virtual void Die() override;
+
+	UPROPERTY(EditAnywhere, Category = "AI")
+	TObjectPtr<UBehaviorTree> BehaviorTree;
+
+	UPROPERTY()
+	TObjectPtr<AAuraAIController> AuraAIController;
+	
 	//virtual UAnimMontage* GetHitReactMontage_Implementation() override;
 	
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void InitAbilityActorInfo() override;
+	virtual void PossessedBy(AController* NewController) override;
 	virtual void InitializeDefaultAttributes() const override;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category= "Character Class Defaults")
 	int32 Level = 1;
