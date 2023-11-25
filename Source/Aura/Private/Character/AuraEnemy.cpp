@@ -61,6 +61,16 @@ void AAuraEnemy::Die()
 	Super::Die();
 }
 
+void AAuraEnemy::SetCombatTarget_Implementation(AActor* InCombatTarget)
+{
+	CombatTarget = InCombatTarget;
+}
+
+AActor* AAuraEnemy::GetCombatTarget_Implementation() const
+{
+	return CombatTarget;
+}
+
 void AAuraEnemy::BeginPlay()
 {
 	Super::BeginPlay();
@@ -68,8 +78,9 @@ void AAuraEnemy::BeginPlay()
 	InitAbilityActorInfo();
 	if (HasAuthority())
 	{
-		UAuraAbilitySystemLibrary::GiveStartupAbilites(this, AbilitySystemComponent);	
+		UAuraAbilitySystemLibrary::GiveStartupAbilites(this, AbilitySystemComponent, CharacterClass);	
 	}
+	
 	UAuraUserWidget* AuraUserWidget = Cast<UAuraUserWidget>(HealthBar->GetUserWidgetObject());
 	if (AuraUserWidget)
 	{
@@ -95,8 +106,6 @@ void AAuraEnemy::BeginPlay()
 void AAuraEnemy::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	UE_LOG(LogTemp,Warning, TEXT("speed: %f"), GetCharacterMovement()->MaxWalkSpeed);
-	UE_LOG(LogTemp,Warning, TEXT("speed: %hhd"), bHitReacting);
 }
 
 void AAuraEnemy::InitAbilityActorInfo()
@@ -152,6 +161,9 @@ void AAuraEnemy::HitReactTagChanged(const FGameplayTag CallBackTag, int32 NewCou
 {
 	bHitReacting = NewCount > 0;
 	GetCharacterMovement()->MaxWalkSpeed = bHitReacting ? 0 : BaseWalkSpeed;
-	AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"), bHitReacting);
+	if (AuraAIController && AuraAIController->GetBlackboardComponent())
+	{
+		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("HitReacting"), bHitReacting);
+	}
 }
 

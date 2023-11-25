@@ -36,8 +36,8 @@ public:
 	bool bHitReacting = false;
 	void HitReactTagChanged(const FGameplayTag CallBackTag, int32 NewCount);
 
-	UPROPERTY(BlueprintReadOnly)
-	float BaseWalkSpeed = 250;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float BaseWalkSpeed = 150;
 
 	UPROPERTY(EditAnywhere, Category= "Combat", BlueprintReadOnly)
 	float LifeSpan = 5;
@@ -48,8 +48,13 @@ public:
 
 	UPROPERTY()
 	TObjectPtr<AAuraAIController> AuraAIController;
+
+	UPROPERTY(BlueprintReadWrite, Category= "Combat")
+	TObjectPtr<AActor> CombatTarget;
 	
 	//virtual UAnimMontage* GetHitReactMontage_Implementation() override;
+	virtual void SetCombatTarget_Implementation(AActor* InCombatTarget) override;
+	virtual AActor* GetCombatTarget_Implementation() const override;
 	
 protected:
 	virtual void BeginPlay() override;
@@ -65,6 +70,8 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UWidgetComponent> HealthBar;
+
+	
 private:
 
 	void ChangeHealth(const FOnAttributeChangeData& Data);

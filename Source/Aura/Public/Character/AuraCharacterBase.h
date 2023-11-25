@@ -29,18 +29,34 @@ public:
 
 	UPROPERTY(EditAnywhere, Category= "Combat")
 	FName WeaponTipSocketName;
+	UPROPERTY(EditAnywhere, Category= "Combat")
+	FName LeftHandSocketName;
+	UPROPERTY(EditAnywhere, Category= "Combat")
+	FName RightHandSocketName;
+
 	
-	virtual FVector GetCombatSocketLocation() override;
+	
+	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag) override;
 
 	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
 
 	virtual void Die() override;
+
+	virtual bool IsDead_Implementation() const override;
+
+	virtual AActor*GetAvatar_Implementation() override;
+
+	virtual TArray<FTaggedMontage> GetAttackMontages_Implementation() override;
 	/** end Combat interface*/
 
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void MulticastHandleDeath();
 	
 	virtual FVector GetFacingTarget() override;
+	
+	UPROPERTY(EditAnywhere, Category= "Combat")
+	TArray<FTaggedMontage> AttackMontages;
+	
 protected:
 	virtual void BeginPlay() override;
 
@@ -74,6 +90,8 @@ protected:
 	void StartDissolveTimeline(UMaterialInstanceDynamic* DynamicMaterialInstance);
 	UFUNCTION(BlueprintImplementableEvent)
 	void StartWeaponDissolveTimeline(UMaterialInstanceDynamic* DynamicMaterialInstance);
+
+	bool bDead = false;
 private:
 
 	UPROPERTY(EditAnywhere, Category= "GAS|Abilities")
