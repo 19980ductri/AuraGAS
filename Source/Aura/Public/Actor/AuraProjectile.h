@@ -19,6 +19,7 @@ class AURA_API AAuraProjectile : public AActor
 public:	
 
 	AAuraProjectile();
+	UPROPERTY(EditDefaultsOnly, Category= "Movement", BlueprintReadOnly)
 	TObjectPtr<UProjectileMovementComponent> ProjectileMovement;
 	
 protected:
