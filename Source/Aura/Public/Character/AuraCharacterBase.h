@@ -61,7 +61,7 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void InitAbilityActorInfo();
-	UPROPERTY(EditAnywhere, Category= "Combat")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,Category= "Combat")
 	TObjectPtr<USkeletalMeshComponent> Weapon;
 
 	UPROPERTY()
