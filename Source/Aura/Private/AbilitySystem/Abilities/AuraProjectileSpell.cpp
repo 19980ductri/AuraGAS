@@ -33,7 +33,7 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 	{*/
 		//const FVector SocketLocation = CombatInterface->GetCombatSocketLocation();
 	//we made this a blueprint native event, so we cannot call it directly like above, instead use the below, no need to cast anymore
-		const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(), FAuraGameplayTags::Get().Montage_Attack_Weapon);
+		const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo(), FAuraGameplayTags::Get().CombatSocket_Weapon);
 
 		//GEngine->AddOnScreenDebugMessage(1, 15, FColor::Red, *FString::Printf(TEXT("socket loc: %s"), *SocketLocation.ToString()));
 		//DrawDebugSphere(GetWorld(), SocketLocation, 50, 12, FColor::Green, false, 20, 0, 2);

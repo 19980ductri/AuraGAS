@@ -9,6 +9,7 @@
 #include "Interact/CombatInterface.h"
 #include "AuraCharacterBase.generated.h"
 
+class UNiagaraSystem;
 class UAbilitySystemComponent;
 class UAttributeSet;
 class UGameplayAbility;
@@ -36,7 +37,7 @@ public:
 
 	
 	
-	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& MontageTag) override;
+	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& SocketTag) override;
 
 	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
 
@@ -47,6 +48,10 @@ public:
 	virtual AActor*GetAvatar_Implementation() override;
 
 	virtual TArray<FTaggedMontage> GetAttackMontages_Implementation() override;
+
+	virtual UNiagaraSystem* GetBloodEffect_Implementation() override;
+
+	virtual FTaggedMontage GetTaggedMontageByTag_Implementation(const FGameplayTag& MontageTag) override;
 	/** end Combat interface*/
 
 	UFUNCTION(NetMulticast, Reliable)
@@ -92,6 +97,9 @@ protected:
 	void StartWeaponDissolveTimeline(UMaterialInstanceDynamic* DynamicMaterialInstance);
 
 	bool bDead = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UNiagaraSystem* BloodEffect;
 private:
 
 	UPROPERTY(EditAnywhere, Category= "GAS|Abilities")

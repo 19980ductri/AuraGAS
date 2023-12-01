@@ -9,6 +9,7 @@
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/CharacterClassInfo.h"
+#include "GameFramework/Character.h"
 #include "Interact/CombatInterface.h"
 
 
@@ -99,7 +100,7 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 
 	ICombatInterface* SourceCombatInterface = Cast<ICombatInterface>(SourceAvatar);
 	ICombatInterface* TargetCombatInterface = Cast<ICombatInterface>(TargetAvatar);
-	
+
 	
 	const FGameplayEffectSpec Spec = ExecutionParams.GetOwningSpec();
 	//more like MMC_MaxHealth
@@ -174,8 +175,6 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 		float SourceCriticalChance = 0;
 		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().CriticalHitChanceDef, EvaluationParam, SourceCriticalChance);
 		SourceCriticalChance = FMath::Max<float>(SourceCriticalChance, 0);
-	
-	
 	
 		float SourceCriticalDamage = 0;
 		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().CriticalHitDamageDef, EvaluationParam, SourceCriticalDamage);
