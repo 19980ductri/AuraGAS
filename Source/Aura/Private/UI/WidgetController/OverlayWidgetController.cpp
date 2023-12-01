@@ -25,6 +25,7 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AuraAttributeSet->GetHealthAttribute()).AddLambda(
 		[this](const FOnAttributeChangeData& Data)
 		{
+			//UE_LOG(LogTemp, Warning, TEXT("Health: %f"), Data.NewValue);
 			OnHealthChange.Broadcast(Data.NewValue);
 		});
 	/*AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(
@@ -36,6 +37,7 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AuraAttributeSet->GetMaxHealthAttribute()).AddLambda(
 		[this](const FOnAttributeChangeData& Data)
 		{
+			
 			OnMaxHealthChange.Broadcast(Data.NewValue);
 		});
 

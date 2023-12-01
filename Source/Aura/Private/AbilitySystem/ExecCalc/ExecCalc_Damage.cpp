@@ -9,6 +9,7 @@
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/CharacterClassInfo.h"
+#include "GameFramework/Character.h"
 #include "Interact/CombatInterface.h"
 
 
@@ -99,7 +100,7 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 
 	ICombatInterface* SourceCombatInterface = Cast<ICombatInterface>(SourceAvatar);
 	ICombatInterface* TargetCombatInterface = Cast<ICombatInterface>(TargetAvatar);
-	
+
 	
 	const FGameplayEffectSpec Spec = ExecutionParams.GetOwningSpec();
 	//more like MMC_MaxHealth
@@ -132,6 +133,7 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 		DamageTypeValue *= (100.f - Resistance) / 100;
 		
 		Damage += DamageTypeValue;
+	
 	}
 
 	
@@ -167,31 +169,32 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 
 	Damage *= (100 - TargetEffectiveArmour * EffectiveArmourCoefficient) / 100.f;
 
-	//Critical Hit and Crit resist
-	float SourceCriticalChance = 0;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().CriticalHitChanceDef, EvaluationParam, SourceCriticalChance);
-	SourceCriticalChance = FMath::Max<float>(SourceCriticalChance, 0);
+	if (SourceAvatar->Tags.Contains(FName("Player")))
+	{
+		//Critical Hit and Crit resist
+		float SourceCriticalChance = 0;
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().CriticalHitChanceDef, EvaluationParam, SourceCriticalChance);
+		SourceCriticalChance = FMath::Max<float>(SourceCriticalChance, 0);
 	
+		float SourceCriticalDamage = 0;
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().CriticalHitDamageDef, EvaluationParam, SourceCriticalDamage);
+		SourceCriticalDamage  = FMath::Max<float>(SourceCriticalDamage, 0);
 	
-	
-	float SourceCriticalDamage = 0;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().CriticalHitDamageDef, EvaluationParam, SourceCriticalDamage);
-	SourceCriticalDamage  = FMath::Max<float>(SourceCriticalDamage, 0);
-	
-	float TargetCriticalResist = 0;
-	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().CriticalHitResistanceDef, EvaluationParam, TargetCriticalResist);
-	TargetCriticalResist = FMath::Max<float>(TargetCriticalResist, 0);
+		float TargetCriticalResist = 0;
+		ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatic().CriticalHitResistanceDef, EvaluationParam, TargetCriticalResist);
+		TargetCriticalResist = FMath::Max<float>(TargetCriticalResist, 0);
 
-	const FRealCurve* EffectiveCritResistCurve = ClassInfo->DamageCalculationCoefficient->FindCurve(FName("CriticalHitResistance"), FString());
-	const float EffectiveCritCoefficient = EffectiveCritResistCurve->Eval(SourceCombatInterface->GetPlayerLevel());
-	const float EffectiveCriticalHitChance = SourceCriticalChance - TargetCriticalResist * EffectiveCritCoefficient;
-	const bool bCriticalHit = FMath::RandRange(1,100) < EffectiveCriticalHitChance;
+		const FRealCurve* EffectiveCritResistCurve = ClassInfo->DamageCalculationCoefficient->FindCurve(FName("CriticalHitResistance"), FString());
+		const float EffectiveCritCoefficient = EffectiveCritResistCurve->Eval(SourceCombatInterface->GetPlayerLevel());
+		const float EffectiveCriticalHitChance = SourceCriticalChance - TargetCriticalResist * EffectiveCritCoefficient;
+		const bool bCriticalHit = FMath::RandRange(1,100) < EffectiveCriticalHitChance;
 
-	UAuraAbilitySystemLibrary::SetIsCriticalHit(EffectContextHandle, bCriticalHit);
+		UAuraAbilitySystemLibrary::SetIsCriticalHit(EffectContextHandle, bCriticalHit);
 	
-	Damage = bCriticalHit ? Damage * 2.f + SourceCriticalDamage : Damage;
-	
+		Damage = bCriticalHit ? Damage * 2.f + SourceCriticalDamage : Damage;
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("damage: %f"), Damage);
 	const FGameplayModifierEvaluatedData EvaluatedData(DamageStatic().IncomingDamageProperty, EGameplayModOp::Additive, Damage);
-
 	OutExecutionOutput.AddOutputModifier(EvaluatedData); 
 }

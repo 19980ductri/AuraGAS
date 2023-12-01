@@ -24,7 +24,7 @@ AAuraPlayerController::AAuraPlayerController()
 void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount,  ACharacter* TargetCharacter, bool bBlockedHit, bool bCriticalHit)
 {
 	
-	if (IsValid(TargetCharacter) && DamageTextComponentClass)
+	if (IsValid(TargetCharacter) && DamageTextComponentClass && IsLocalController())
 	{
 		const int Dmg = static_cast<int>(DamageAmount);
 		const auto DamageText = NewObject<UDamageTextComponent>(TargetCharacter, DamageTextComponentClass);
@@ -154,8 +154,11 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 				{
 					Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
 				}
-				CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
-				bAutoRunning = true;
+				if (NavPath->PathPoints.Num() > 0)
+				{
+					CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
+					bAutoRunning = true;
+				}
 				
 			}
 		}

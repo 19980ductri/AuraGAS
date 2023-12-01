@@ -9,6 +9,7 @@
 #include "Interact/CombatInterface.h"
 #include "AuraCharacterBase.generated.h"
 
+class UNiagaraSystem;
 class UAbilitySystemComponent;
 class UAttributeSet;
 class UGameplayAbility;
@@ -29,23 +30,43 @@ public:
 
 	UPROPERTY(EditAnywhere, Category= "Combat")
 	FName WeaponTipSocketName;
+	UPROPERTY(EditAnywhere, Category= "Combat")
+	FName LeftHandSocketName;
+	UPROPERTY(EditAnywhere, Category= "Combat")
+	FName RightHandSocketName;
+
 	
-	virtual FVector GetCombatSocketLocation() override;
+	
+	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& SocketTag) override;
 
 	virtual UAnimMontage* GetHitReactMontage_Implementation() override;
 
 	virtual void Die() override;
+
+	virtual bool IsDead_Implementation() const override;
+
+	virtual AActor*GetAvatar_Implementation() override;
+
+	virtual TArray<FTaggedMontage> GetAttackMontages_Implementation() override;
+
+	virtual UNiagaraSystem* GetBloodEffect_Implementation() override;
+
+	virtual FTaggedMontage GetTaggedMontageByTag_Implementation(const FGameplayTag& MontageTag) override;
 	/** end Combat interface*/
 
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void MulticastHandleDeath();
 	
 	virtual FVector GetFacingTarget() override;
+	
+	UPROPERTY(EditAnywhere, Category= "Combat")
+	TArray<FTaggedMontage> AttackMontages;
+	
 protected:
 	virtual void BeginPlay() override;
 
 	virtual void InitAbilityActorInfo();
-	UPROPERTY(EditAnywhere, Category= "Combat")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly,Category= "Combat")
 	TObjectPtr<USkeletalMeshComponent> Weapon;
 
 	UPROPERTY()
@@ -74,6 +95,11 @@ protected:
 	void StartDissolveTimeline(UMaterialInstanceDynamic* DynamicMaterialInstance);
 	UFUNCTION(BlueprintImplementableEvent)
 	void StartWeaponDissolveTimeline(UMaterialInstanceDynamic* DynamicMaterialInstance);
+
+	bool bDead = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	UNiagaraSystem* BloodEffect;
 private:
 
 	UPROPERTY(EditAnywhere, Category= "GAS|Abilities")

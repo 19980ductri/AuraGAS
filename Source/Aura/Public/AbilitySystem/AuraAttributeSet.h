@@ -137,16 +137,12 @@ public:
 	void OnRep_Health(const FGameplayAttributeData& OldHealth) const;
 	
 	
-
-	
 	UPROPERTY(BlueprintReadOnly, Category= "Vital" ,ReplicatedUsing= OnRep_Mana)
 	FGameplayAttributeData Mana;
 	ATTRIBUTE_ACCESSORS(UAuraAttributeSet, Mana);
 	UFUNCTION()
 	void OnRep_Mana(const FGameplayAttributeData& OldMana) const;
-
-
-
+	
 	
 	/*
 	 * vital attributes

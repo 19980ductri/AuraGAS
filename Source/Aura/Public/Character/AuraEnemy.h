@@ -11,9 +11,9 @@
 
 class UWidgetComponent;
 class UAnimMontage;
-/**
- * 
- */
+class UBehaviorTree;
+class AAuraAIController;
+
 UCLASS()
 class AURA_API AAuraEnemy : public AAuraCharacterBase, public IEnemyInterface
 {
@@ -36,18 +36,31 @@ public:
 	bool bHitReacting = false;
 	void HitReactTagChanged(const FGameplayTag CallBackTag, int32 NewCount);
 
-	UPROPERTY(BlueprintReadOnly)
-	float BaseWalkSpeed = 250;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	float BaseWalkSpeed = 150;
 
 	UPROPERTY(EditAnywhere, Category= "Combat", BlueprintReadOnly)
 	float LifeSpan = 5;
 	virtual void Die() override;
+
+	UPROPERTY(EditAnywhere, Category = "AI")
+	TObjectPtr<UBehaviorTree> BehaviorTree;
+
+	UPROPERTY()
+	TObjectPtr<AAuraAIController> AuraAIController;
+
+	UPROPERTY(BlueprintReadWrite, Category= "Combat")
+	TObjectPtr<AActor> CombatTarget;
+	
 	//virtual UAnimMontage* GetHitReactMontage_Implementation() override;
+	virtual void SetCombatTarget_Implementation(AActor* InCombatTarget) override;
+	virtual AActor* GetCombatTarget_Implementation() const override;
 	
 protected:
 	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 	virtual void InitAbilityActorInfo() override;
+	virtual void PossessedBy(AController* NewController) override;
 	virtual void InitializeDefaultAttributes() const override;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category= "Character Class Defaults")
 	int32 Level = 1;
@@ -57,6 +70,8 @@ protected:
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UWidgetComponent> HealthBar;
+
+	
 private:
 
 	void ChangeHealth(const FOnAttributeChangeData& Data);
