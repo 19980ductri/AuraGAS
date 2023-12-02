@@ -34,7 +34,8 @@ public:
 	FName LeftHandSocketName;
 	UPROPERTY(EditAnywhere, Category= "Combat")
 	FName RightHandSocketName;
-
+	UPROPERTY(EditAnywhere, Category= "Combat")
+	FName TailSocketName;
 	
 	
 	virtual FVector GetCombatSocketLocation_Implementation(const FGameplayTag& SocketTag) override;
@@ -54,6 +55,8 @@ public:
 	virtual FTaggedMontage GetTaggedMontageByTag_Implementation(const FGameplayTag& MontageTag) override;
 	/** end Combat interface*/
 
+
+	
 	UFUNCTION(NetMulticast, Reliable)
 	virtual void MulticastHandleDeath();
 	
@@ -99,6 +102,10 @@ protected:
 	bool bDead = false;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
+	USoundBase* DeathSound;
+	
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	UNiagaraSystem* BloodEffect;
 private:
 
@@ -115,6 +122,6 @@ private:
 	
 	UPROPERTY(EditAnywhere, Category= "Combat")
 	TObjectPtr<UMaterialInstance> WeaponDissolveMaterialInstance;
-
+	
 	
 };

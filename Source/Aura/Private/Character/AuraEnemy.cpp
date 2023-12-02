@@ -138,10 +138,12 @@ void AAuraEnemy::PossessedBy(AController* NewController)
 	if (CharacterClass != ECharacterClass::Warrior)
 	{
 		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("RangedAttacker"), true);
+		//E_LOG(LogTemp, Warning, TEXT("ranged"));
 	}
 	else
 	{
 		AuraAIController->GetBlackboardComponent()->SetValueAsBool(FName("RangedAttacker"), false);
+		//UE_LOG(LogTemp, Warning, TEXT("melee"));
 	}
 }
 
