@@ -4,16 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "AssetActionUtility.h"
-#include "NiagaraEmitter.h"	
 #include "NiagaraSystem.h"
+#include "NiagaraEmitter.h"
 #include "Blueprint/UserWidget.h"
-#include "Components/SkeletalMeshComponent.h"
-#include "Engine/Texture.h"
-#include "Materials/Material.h"
 #include "Materials/MaterialInstanceConstant.h"
-#include "Particles/ParticleSystem.h"	
 #include "Sound/SoundCue.h"
-#include "Sound/SoundWave.h"
 #include "QuickAssetAction.generated.h"
 
 /**
@@ -33,8 +28,7 @@ public:
 private:
 	TMap<UClass*, FString> PrefixMap =
 		{
-		{UBlueprint::StaticClass(),TEXT("BP_")},
-		{UStaticMesh::StaticClass(),TEXT("SM_")},
+		{UBlueprint::StaticClass(),TEXT("BP_")},{UStaticMesh::StaticClass(),TEXT("SM_")},
 		{UMaterial::StaticClass(), TEXT("M_")},
 		{UMaterialInstanceConstant::StaticClass(),TEXT("MI_")},
 		{UMaterialFunctionInterface::StaticClass(), TEXT("MF_")},

@@ -1,4 +1,3 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
 
 using UnrealBuildTool;
 
@@ -16,7 +15,8 @@ public class ExtendEditor : ModuleRules
 		PrivateIncludePaths.AddRange(
 			new string[]
 			{
-				System.IO.Path.GetFullPath(Target.RelativeEnginePath) + "Source/Editor/Blutility/Private"
+				System.IO.Path.GetFullPath(Target.RelativeEnginePath) + "Source/Editor/Blutility/Private",
+				//System.IO.Path.GetFullPath(Target.RelativeEnginePath) + "Plugins/Editor/EditorScriptingUtilities/Source/EditorScriptingUtilities/Private"
 			}
 		);
 
@@ -27,7 +27,8 @@ public class ExtendEditor : ModuleRules
 				"Core",
 				"Engine",
 				"EditorScriptingUtilities",
-				"Blutility", "Niagara"
+				"Blutility", "Niagara", 
+				"UMG"
 			}
 		);
 
@@ -39,7 +40,10 @@ public class ExtendEditor : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-
+				"EditorScriptingUtilities",
+				"UMG",
+				"Blutility", 
+				"Niagara"
 				// ... add private dependencies that you statically link with here ...	
 			}
 		);
