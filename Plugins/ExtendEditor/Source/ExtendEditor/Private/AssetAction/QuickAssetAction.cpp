@@ -4,16 +4,17 @@
 #include "DebugHeader.h"
 #include "EditorUtilityLibrary.h"
 #include "EditorAssetLibrary.h"
+#include "ObjectTools.h"
 
 void UQuickAssetAction::DuplicateAsset(int32 NumOfDuplicates)
 {
 	if (NumOfDuplicates <= 0)
 	{
-		ShowMessageDialog(EAppMsgType::Ok, TEXT("Please enter valid number"));
+		DebugHeader::ShowMessageDialog(EAppMsgType::Ok, TEXT("Please enter valid number"));
 		return;
 	}
 	TArray<FAssetData> SelectedAssetDatas = UEditorUtilityLibrary::GetSelectedAssetData();
-	
+
 	uint32 Counter = 0;
 	for (const FAssetData& AssetData : SelectedAssetDatas)
 	{
@@ -34,13 +35,13 @@ void UQuickAssetAction::DuplicateAsset(int32 NumOfDuplicates)
 	if (Counter > 0)
 	{
 		//Print(TEXT("Succesfully duplicated" + FString::FromInt(Counter) + " files"), FColor::Green);
-		ShowNotifyInfo(TEXT("Succesfully duplicated" + FString::FromInt(Counter) + " files"));
+		DebugHeader::ShowNotifyInfo(TEXT("Succesfully duplicated" + FString::FromInt(Counter) + " files"));
 	}
 }
 
 void UQuickAssetAction::AddPrefixes()
 {
-	TArray<UObject*> SelectedOjects =UEditorUtilityLibrary::GetSelectedAssets();
+	TArray<UObject*> SelectedOjects = UEditorUtilityLibrary::GetSelectedAssets();
 
 	uint32 Counter = 0;
 	for (auto SelectedObj : SelectedOjects)
@@ -52,14 +53,20 @@ void UQuickAssetAction::AddPrefixes()
 		FString* PrefixFound = PrefixMap.Find(SelectedObj->GetClass());
 		if (!PrefixFound || PrefixFound->IsEmpty())
 		{
-			Print(TEXT("Failed to find prefix for class") + SelectedObj->GetClass()->GetName(), FColor::Red);
+			DebugHeader::Print(TEXT("Failed to find prefix for class") + SelectedObj->GetClass()->GetName(), FColor::Red);
 			continue;
 		}
 
 		FString OldName = SelectedObj->GetName();
 		if (OldName.StartsWith(*PrefixFound))
 		{
-			Print(OldName + TEXT(" already have prefix added"), FColor::Red);
+			DebugHeader::Print(OldName + TEXT(" already have prefix added"), FColor::Red);
+		}
+
+		if (SelectedObj->IsA<UMaterialInstance>())
+		{
+			OldName.RemoveFromStart(TEXT("M_"));
+			OldName.RemoveFromEnd(TEXT("_Inst"));
 		}
 
 		const FString NewNameWithPrefix = *PrefixFound + OldName;
@@ -72,6 +79,33 @@ void UQuickAssetAction::AddPrefixes()
 	{
 		return;
 	}
-	ShowNotifyInfo(TEXT("Successfully renamed ") + FString::FromInt(Counter)+ " asset");
+	DebugHeader::ShowNotifyInfo(TEXT("Successfully renamed ") + FString::FromInt(Counter) + " asset");
 }
 
+void UQuickAssetAction::RemoveUnusedAssets()
+{
+	TArray<FAssetData> SelectedAssetDatas = UEditorUtilityLibrary::GetSelectedAssetData();
+	TArray<FAssetData> UnusedAssetDatas;
+
+	for (const auto& SelectedAsset : SelectedAssetDatas)
+	{
+		TArray<FString> AssetRefs = UEditorAssetLibrary::FindPackageReferencersForAsset(
+			SelectedAsset.GetObjectPathString());
+		if (AssetRefs.Num() == 0)
+		{
+			UnusedAssetDatas.Add(SelectedAsset);
+		}
+	}
+	if (UnusedAssetDatas.Num() == 0)
+	{
+		DebugHeader::ShowMessageDialog(EAppMsgType::Ok,TEXT("No unused asset found"));
+		return;
+	}
+
+	const int32 NumOfAssetsDeleted = ObjectTools::DeleteAssets(UnusedAssetDatas);
+	if (NumOfAssetsDeleted == 0)
+	{
+		return;
+	}
+	DebugHeader::ShowMessageDialog(EAppMsgType::Ok,TEXT("Unused assets successfullly deleted"));
+}

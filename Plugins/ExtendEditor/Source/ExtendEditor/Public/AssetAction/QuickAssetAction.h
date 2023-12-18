@@ -24,7 +24,9 @@ public:
 
 	UFUNCTION(CallInEditor)
 	void AddPrefixes();
-	
+
+	UFUNCTION(CallInEditor)
+	void RemoveUnusedAssets();
 private:
 	TMap<UClass*, FString> PrefixMap =
 		{

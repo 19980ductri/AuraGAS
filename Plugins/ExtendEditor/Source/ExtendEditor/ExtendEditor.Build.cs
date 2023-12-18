@@ -28,7 +28,10 @@ public class ExtendEditor : ModuleRules
 				"Engine",
 				"EditorScriptingUtilities",
 				"Blutility", "Niagara", 
-				"UMG"
+				"UMG",
+				"UnrealEd",
+				"AssetTools",
+				"ContentBrowser"
 			}
 		);
 
@@ -39,11 +42,7 @@ public class ExtendEditor : ModuleRules
 				"CoreUObject",
 				"Engine",
 				"Slate",
-				"SlateCore",
-				"EditorScriptingUtilities",
-				"UMG",
-				"Blutility", 
-				"Niagara"
+				"SlateCore"
 				// ... add private dependencies that you statically link with here ...	
 			}
 		);
