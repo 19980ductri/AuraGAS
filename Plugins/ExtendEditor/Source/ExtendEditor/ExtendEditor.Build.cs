@@ -27,11 +27,13 @@ public class ExtendEditor : ModuleRules
 				"Core",
 				"Engine",
 				"EditorScriptingUtilities",
-				"Blutility", "Niagara", 
+				"Blutility", 
+				"Niagara", 
 				"UMG",
 				"UnrealEd",
 				"AssetTools",
-				"ContentBrowser"
+				"ContentBrowser",
+				"InputCore"
 			}
 		);
 
