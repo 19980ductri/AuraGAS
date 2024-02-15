@@ -10,10 +10,9 @@
 AAuraPlayerState::AAuraPlayerState()
 {
 	NetUpdateFrequency = 100;
+	
 	AbilitySystemComponent = CreateDefaultSubobject<UAuraAbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
-	
-
 	/*
 	 * for mixed Replication mode: the controller must be the owner of OwnerActor. For Pawns, this is set auto in PossessedBy()
 	 * the owner of PlayerState is auto set is the Controller
@@ -21,8 +20,6 @@ AAuraPlayerState::AAuraPlayerState()
 	 */
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 	AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>("AttributeSet");
-
-	
 }
 
 void AAuraPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const

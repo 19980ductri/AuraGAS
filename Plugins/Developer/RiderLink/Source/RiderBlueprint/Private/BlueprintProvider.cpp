@@ -13,7 +13,7 @@
 #include "Toolkits/AssetEditorManager.h"
 #endif
 #include "Kismet2/BlueprintEditorUtils.h"
-#include "Model/RdEditorProtocol/RdEditorModel/RdEditorModel.Pregenerated.h"
+#include "Model/RdEditorProtocol/RdEditorModel/RdEditorModel.Generated.h"
 
 #if ENGINE_MAJOR_VERSION < 5
 #include "AssetData.h"
