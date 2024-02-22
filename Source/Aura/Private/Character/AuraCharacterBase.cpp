@@ -28,8 +28,6 @@ AAuraCharacterBase::AAuraCharacterBase()
 
 UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
 {
-
-	
 	return AbilitySystemComponent;
 }
 

@@ -4,7 +4,6 @@
 #include "Aura/Public/Character/AuraCharacter.h"
 
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
-#include "AbilitySystem/AuraAttributeSet.h"
 #include "Aura/Aura.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Player/AuraPlayerController.h"
