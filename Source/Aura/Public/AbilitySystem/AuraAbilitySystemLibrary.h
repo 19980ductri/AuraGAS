@@ -14,7 +14,7 @@ class UOverlayWidgetController;
  * 
  */
 UCLASS()
-class AURA_API UAuraAbilitySystemLibrary : public UBlueprintFunctionLibrary
+class AURA_API  UAuraAbilitySystemLibrary : public UBlueprintFunctionLibrary
 {
 	GENERATED_BODY()
 public:
