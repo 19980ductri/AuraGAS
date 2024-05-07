@@ -31,20 +31,26 @@ void UAuraInputComponent::BindAbilityActions(const UAuraInputConfig* InputConfig
 		{
 			if (PressedFunc)
 			{
+				UE_LOG(LogTemp, Warning, TEXT("Binding Pressed Func: "));
+				UE_LOG(LogTemp, Warning, TEXT("Tag input: %s"), *Action.InputTag.ToString());
+				UE_LOG(LogTemp, Warning, TEXT("Action input: %s"), *Action.InputAction->GetName());
+				//BindAction(Action.InputAction, ETriggerEvent::Started, Object, PressedFunc);
 				BindAction(Action.InputAction, ETriggerEvent::Started, Object, PressedFunc, Action.InputTag);
+
+				UE_LOG(LogTemp,Warning, TEXT("Object: %s"), *Object->GetName());
 			}
 
 			if (ReleasedFunc)
 			{
+				//BindAction(Action.InputAction, ETriggerEvent::Started, Object, ReleasedFunc);
 				BindAction(Action.InputAction, ETriggerEvent::Completed, Object, ReleasedFunc, Action.InputTag);
 			}
 			
 			if (HeldFunc)
 			{
+				//BindAction(Action.InputAction, ETriggerEvent::Started, Object, HeldFunc);
 				BindAction(Action.InputAction, ETriggerEvent::Triggered, Object, HeldFunc, Action.InputTag);
 			}
-			
-			
 		}
 	}
 }

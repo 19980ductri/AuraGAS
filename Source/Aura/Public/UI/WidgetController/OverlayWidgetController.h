@@ -3,15 +3,17 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "UI/WidgetController/AuraWidgetController.h"
 #include "OverlayWidgetController.generated.h"
 
 
+struct FAuraAbilityInfo;
+class UAbilityInfo;
 //forward declare
-class UAuraUserWidget;USTRUCT(BlueprintType)
+class UAuraUserWidget;
 
-
-//forward declare
+USTRUCT(BlueprintType)
 struct FUIWidgetRow : public FTableRowBase
 {
 	GENERATED_BODY()
@@ -32,6 +34,9 @@ struct FUIWidgetRow : public FTableRowBase
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnAttributeChangedSignature, float, NewValue);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FMessageWidgetSignature, FUIWidgetRow, Row);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FAbilityInfoSignature, const FAuraAbilityInfo&, Info);
+
+
 /*
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnHealthChangeSignature, float, NewHealth);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnMaxHealthChangeSignature, float, NewMaxHealth);
@@ -67,6 +72,14 @@ public:
 	UPROPERTY(BlueprintAssignable, Category= "GAS|Messages")
 	FMessageWidgetSignature MessageWidgetRowDelegate;
 
+	UPROPERTY(BlueprintAssignable, Category= "GAS|Messages")
+	FAbilityInfoSignature AbilityInfoDelegate;
+	
+	UPROPERTY(BlueprintAssignable, Category="GAS|XP")
+	FOnAttributeChangedSignature OnXPPercentChangedDelegate;
+	
+	UPROPERTY(BlueprintAssignable, Category="GAS|Level")
+	FOnPlayerStatChangedSignature OnPlayerLevelChangedDelegate;
 	
 protected:
 	/*void HealthChanged(const FOnAttributeChangeData& Data) const;
@@ -77,8 +90,15 @@ protected:
 	
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= WidgetData)
-	TObjectPtr<UDataTable> MessageDataTable;
-	
+	TObjectPtr<UDataTable> MessageWidgetDataTable;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category= WidgetData)
+	TObjectPtr<UAbilityInfo> AbilityInfo;
+
+	void OnInitializeStartupAbilities(UAuraAbilitySystemComponent* AuraAbilitySystemComponent);
+
+	void OnXPChanged(int32 NewXP) const;
+
 };
 
 template<typename T>

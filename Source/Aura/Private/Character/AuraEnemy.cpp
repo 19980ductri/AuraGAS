@@ -47,11 +47,11 @@ void AAuraEnemy::UnHighlightActor()
 	
 }
 
-int AAuraEnemy::GetPlayerLevel()
+int32 AAuraEnemy::GetPlayerLevel_Implementation()
 {
 	return Level;
-	
 }
+
 
 
 void AAuraEnemy::Die()

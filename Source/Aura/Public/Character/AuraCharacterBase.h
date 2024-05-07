@@ -26,7 +26,7 @@ public:
 	
 
 	/** Combat interface*/
-	virtual int32 GetPlayerLevel() override;
+	virtual int32 GetPlayerLevel_Implementation() override;
 
 	UPROPERTY(EditAnywhere, Category= "Combat")
 	FName WeaponTipSocketName;
@@ -57,6 +57,8 @@ public:
 	virtual int32 GetMinionCount_Implementation() override;
 
 	virtual void IncreamentMinionCount_Implementation(int32 Amount) override;
+
+	virtual ECharacterClass GetCharacterClass_Implementation() override;
 	/** end Combat interface*/
 
 
@@ -83,7 +85,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category= "Attributes")
 	TSubclassOf<UGameplayEffect> DefaultPrimaryAttributes;
-	
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category= "Character Class Defaults")
+	ECharacterClass CharacterClass = ECharacterClass::Warrior;
 	
 	UPROPERTY(EditAnywhere, Category="Attributes")
 	TSubclassOf<UGameplayEffect>  DefaultSecondaryAttributes;
@@ -119,6 +123,8 @@ private:
 
 	UPROPERTY(EditAnywhere, Category= "GAS|Abilities")
 	TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
+	UPROPERTY(EditAnywhere, Category= "GAS|Abilities")
+	TArray<TSubclassOf<UGameplayAbility>> StartupPassiveAbilities;
 
 	
 	UPROPERTY(EditAnywhere, Category= "Combat")

@@ -24,7 +24,7 @@ public:
 
 	virtual void HighlightActor() override;
 	virtual void UnHighlightActor() override;
-	virtual int GetPlayerLevel() override;
+	virtual int32 GetPlayerLevel_Implementation() override;
 
 	UPROPERTY(BlueprintAssignable, BlueprintCallable)
 	FOnAttributeChangedSignature OnHealthChanged;
@@ -65,8 +65,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category= "Character Class Defaults")
 	int32 Level = 1;
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category= "Character Class Defaults")
-	ECharacterClass CharacterClass = ECharacterClass::Warrior;
+	
 	
 	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TObjectPtr<UWidgetComponent> HealthBar;

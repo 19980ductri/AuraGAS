@@ -1,12 +1,15 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+ // Fill out your copyright notice in the Description page of Project Settings.
 
 
 #include "UI/WidgetController/AttributeMenuWidgetController.h"
+
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/AttributeInfo.h"
+#include "Player/AuraPlayerState.h"
 
 
-void UAttributeMenuWidgetController::BroadCastInitialValue()
+ void UAttributeMenuWidgetController::BroadCastInitialValue()
 {
 	Super::BroadCastInitialValue();
 	UAuraAttributeSet* AS = CastChecked<UAuraAttributeSet>(AttributeSet);
@@ -19,13 +22,21 @@ void UAttributeMenuWidgetController::BroadCastInitialValue()
 	{
 		BroadcastAttributeInfo(Pair.Key, Pair.Value());
 	}
-		
+
+ 	AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState);
+ 	AttributePointsChangedDelegate.Broadcast(AuraPlayerState->GetAttributePoint());
 }
 
 void UAttributeMenuWidgetController::BindCallbacksToDependencies()
 {
 	Super::BindCallbacksToDependencies();
-
+	AAuraPlayerState* AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState);
+ 	AuraPlayerState->OnAttributePointChangedDelegate.AddLambda(
+ 		[this](int32 Points)
+ 		{
+ 			AttributePointsChangedDelegate.Broadcast(Points);
+ 		}
+ 	);
 	UAuraAttributeSet* AS = CastChecked<UAuraAttributeSet>(AttributeSet);
 	
 	for (auto& Pair : AS->TagsToAttributes)
@@ -38,8 +49,14 @@ void UAttributeMenuWidgetController::BindCallbacksToDependencies()
 	}
 }
 
-void UAttributeMenuWidgetController::BroadcastAttributeInfo(const FGameplayTag& AttributeTag,
-	const FGameplayAttribute& Attribute)
+ void UAttributeMenuWidgetController::UpgradeAttribute(const FGameplayTag& AttributeTag)
+ {
+ 	UAuraAbilitySystemComponent* AuraASC = CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
+ 	AuraASC->UpgradeAttribute(AttributeTag);
+ }
+
+ void UAttributeMenuWidgetController::BroadcastAttributeInfo(const FGameplayTag& AttributeTag,
+                                                             const FGameplayAttribute& Attribute)
 {
 	FAuraAttributeInfo Info = AttributeInfo->FindAttributeInfoForTag(AttributeTag);
 	Info.AttributeValue = Attribute.GetNumericValue(AttributeSet);

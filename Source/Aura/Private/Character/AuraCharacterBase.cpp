@@ -9,6 +9,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "Player/AuraPlayerController.h"
+#include "Player/AuraPlayerState.h"
 
 
 AAuraCharacterBase::AAuraCharacterBase()
@@ -31,11 +32,9 @@ UAbilitySystemComponent* AAuraCharacterBase::GetAbilitySystemComponent() const
 	return AbilitySystemComponent;
 }
 
-
-int32 AAuraCharacterBase::GetPlayerLevel()
+int32 AAuraCharacterBase::GetPlayerLevel_Implementation()
 {
-	return ICombatInterface::GetPlayerLevel();
-	
+	return ICombatInterface::GetPlayerLevel_Implementation();
 }
 
 FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const FGameplayTag& SocketTag)
@@ -117,6 +116,11 @@ void AAuraCharacterBase::IncreamentMinionCount_Implementation(int32 Amount)
 	MinionCount += Amount;
 }
 
+ECharacterClass AAuraCharacterBase::GetCharacterClass_Implementation()
+{
+	return CharacterClass;
+}
+
 void AAuraCharacterBase::MulticastHandleDeath_Implementation()
 {
 	UGameplayStatics::PlaySoundAtLocation(this,DeathSound,GetActorLocation(), GetActorRotation());
@@ -183,7 +187,7 @@ void AAuraCharacterBase::AddCharacterAbilities()
 
 	UAuraAbilitySystemComponent* AuraASC = CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
 	AuraASC->AddCharacterAbilities(StartupAbilities);
-	
+	AuraASC->AddCharacterPassiveAbilities(StartupPassiveAbilities);
 }
 
 void AAuraCharacterBase::Dissolve()

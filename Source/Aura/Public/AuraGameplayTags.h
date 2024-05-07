@@ -62,6 +62,9 @@ public:
 
  FGameplayTag Abilities_Attack;
  FGameplayTag Abilities_Summon;
+
+ FGameplayTag Abilities_Fire_FireBolt; 
+ FGameplayTag Cooldown_Fire_FireBolt;
  
  FGameplayTag CombatSocket_Weapon;
  FGameplayTag CombatSocket_LeftHand;
@@ -79,6 +82,8 @@ public:
  // effects
  FGameplayTag Effects_HitReact;
 
+ // meta
+ FGameplayTag Attribute_Meta_IncomingXP;
 
 protected:
 

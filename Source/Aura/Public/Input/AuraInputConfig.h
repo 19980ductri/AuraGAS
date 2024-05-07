@@ -7,7 +7,7 @@
 #include "Engine/DataAsset.h"
 #include "AuraInputConfig.generated.h"
 
-struct FGameplayTag;
+//struct FGameplayTag;
 
 USTRUCT(BlueprintType)
 struct FAuraInputAction

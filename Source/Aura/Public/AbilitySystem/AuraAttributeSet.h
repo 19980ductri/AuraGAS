@@ -68,6 +68,7 @@ public:
 
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
+	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue) override;
 	//TMap<FGameplayTag, FAttributeSignature> TagsToAttributes;
 
 	/*
@@ -275,11 +276,19 @@ public:
 	UPROPERTY(BlueprintReadOnly, Category= "Meta")
 	FGameplayAttributeData IncomingDamage;
 	ATTRIBUTE_ACCESSORS(UAuraAttributeSet, IncomingDamage);
+
+	UPROPERTY(BlueprintReadOnly, Category= "Meta")
+	FGameplayAttributeData IncomingXP;
+	ATTRIBUTE_ACCESSORS(UAuraAttributeSet, IncomingXP);
 	
 private:
 	void SetEffectProperties(const FGameplayEffectModCallbackData& Data,FEffectProperties& Props) const;
 
-	
+	void SendXPEvent(const FEffectProperties& Props);
+
+
+	bool bTopOffHealth = false;
+	bool bTopOffMana = false;
 };
 
 

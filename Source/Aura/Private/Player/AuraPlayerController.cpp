@@ -23,7 +23,6 @@ AAuraPlayerController::AAuraPlayerController()
 
 void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount,  ACharacter* TargetCharacter, bool bBlockedHit, bool bCriticalHit)
 {
-	
 	if (IsValid(TargetCharacter) && DamageTextComponentClass && IsLocalController())
 	{
 		const int Dmg = static_cast<int>(DamageAmount);
@@ -47,14 +46,14 @@ void AAuraPlayerController::BeginPlay()
 	{
 		Subsystem->AddMappingContext(AuraContext,0);
 	}
+
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Default;
-
+	
 	FInputModeGameAndUI InputModeData;
 	InputModeData.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
 	InputModeData.SetHideCursorDuringCapture(false);
 	SetInputMode(InputModeData);
-	//EnhancedInput init
 }
 
 void AAuraPlayerController::SetupInputComponent()
@@ -63,8 +62,11 @@ void AAuraPlayerController::SetupInputComponent()
 	//InputComponent points to UEnhancedInputComponent which can be set in Project Settings
 	UAuraInputComponent* AuraInputComponent = CastChecked<UAuraInputComponent>(InputComponent);
 
-	AuraInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAuraPlayerController::Move);
-	AuraInputComponent->BindAbilityActions(InputConfig, this, &ThisClass::AbilityInputTagPressed, &ThisClass::AbilityInputTagReleased, &ThisClass::AbilityInputTagHeld);
+	//AuraInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AAuraPlayerController::Move);
+	AuraInputComponent->BindAbilityActions(InputConfig, this,
+		&ThisClass::AbilityInputTagPressed,
+		&ThisClass::AbilityInputTagReleased,
+		&ThisClass::AbilityInputTagHeld);
 }
 
 void AAuraPlayerController::PlayerTick(float DeltaTime)
@@ -92,7 +94,6 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 
 	ControllerPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
 	ControllerPawn->AddMovementInput(RightDirection, InputAxisVector.X);
-	
 }
 
 void AAuraPlayerController::CursorTrace()
@@ -111,22 +112,22 @@ void AAuraPlayerController::CursorTrace()
 			ThisActor->HighlightActor();
 		if (LastActor)
 			LastActor->UnHighlightActor();
-		
 	}
 }
 
 void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)	
 {
+	UE_LOG(LogTemp, Warning, TEXT("AbilityInputTagPressed"));
 	if (InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		bTargeting = ThisActor ? true : false;
 		bAutoRunning = false;	
 	}
-
 }
 
 void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 {
+	UE_LOG(LogTemp, Warning, TEXT("AbilityInputTagReleased"));
 	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		if (GetASC())
@@ -159,7 +160,6 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 					CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
 					bAutoRunning = true;
 				}
-				
 			}
 		}
 		FollowTime = 0;
@@ -167,18 +167,8 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 	}
 }
 
-
 void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 {
-	/*
-	if (GetASC() == nullptr)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("null"));
-		return;
-	}
-	GetASC()->AbilityInputTagHeld(InputTag);
-	*/
-
 	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		if (GetASC())
@@ -208,7 +198,6 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 			ControlPawn->AddMovementInput(WorldDir);
 		}
 	}
-	
 }
 
 UAuraAbilitySystemComponent* AAuraPlayerController::GetASC()
