@@ -37,4 +37,4 @@ private:
 
 	UPROPERTY(BlueprintAssignable)
 	FOnPlayerStatChangedSignature AttributePointsChangedDelegate;
-};
+};					

@@ -2,6 +2,9 @@
 
 
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AIController.h"
 #include "GameplayTagsModule.h"
 #include "AuraAbilityTypes.h"
 #include "Game/AuraGameModeBase.h"
@@ -10,27 +13,52 @@
 #include "Player/AuraPlayerState.h"
 #include "UI/HUD/AuraHUD.h"
 #include "UI/WidgetController/AuraWidgetController.h"
+#include "UI/WidgetController/SpellMenuWidgetController.h"
 
-UOverlayWidgetController* UAuraAbilitySystemLibrary::GetOverlayWidgetController(const UObject* WorldObject)
+bool UAuraAbilitySystemLibrary::MakeWidgetControllerParams(const UObject* WorldObject, FWidgetControllerParams& OutWCParams, AAuraHUD*& OutAuraHUD)
 {
 	if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(WorldObject, 0))
 	{
-		if (AAuraHUD* AuraHUD = Cast<AAuraHUD>(PlayerController->GetHUD()))
+		OutAuraHUD = Cast<AAuraHUD>(PlayerController->GetHUD());
+		if (OutAuraHUD)
 		{
 			AAuraPlayerState* PlayerState = PlayerController->GetPlayerState<AAuraPlayerState>();
-			UAbilitySystemComponent* AbilitySystemComponent = PlayerState->GetAbilitySystemComponent();
+			UAbilitySystemComponent* ASC = PlayerState->GetAbilitySystemComponent();
 			UAttributeSet* AttributeSet = PlayerState->GetAttributeSet();
-			const FWidgetControllerParams Params = FWidgetControllerParams(PlayerController,PlayerState ,AbilitySystemComponent, AttributeSet);
-			
-			return AuraHUD->GetOverlayWidgetController(Params);
+			OutWCParams.Attributes = AttributeSet;
+			OutWCParams.PlayerController = PlayerController;
+			OutWCParams.AbilitySystemComponent = ASC;
+			OutWCParams.PlayerState = PlayerState;
+			return true;
 		}
+	}
+	return false;
+}
+
+UOverlayWidgetController* UAuraAbilitySystemLibrary::GetOverlayWidgetController(const UObject* WorldObject)
+{
+	FWidgetControllerParams WCParam;
+	AAuraHUD* AuraHUD;
+	bool bSuccessParam = MakeWidgetControllerParams(WorldObject,WCParam, AuraHUD);
+	if (bSuccessParam)
+	{
+		return AuraHUD->GetOverlayWidgetController(WCParam);
 	}
 	return nullptr;
 }
 
 UAttributeMenuWidgetController* UAuraAbilitySystemLibrary::GetAttributeWidgetController(const UObject* WorldObject)
 {
-	if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(WorldObject, 0))
+
+	FWidgetControllerParams WCParam;
+	AAuraHUD* AuraHUD;
+	bool bSuccessParam = MakeWidgetControllerParams(WorldObject,WCParam, AuraHUD);
+	if (bSuccessParam)
+	{
+		return AuraHUD->GetAttributeMenuWidgetController(WCParam);
+	}
+	return nullptr;
+	/*if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(WorldObject, 0))
 	{
 		if (AAuraHUD* AuraHUD = Cast<AAuraHUD>(PlayerController->GetHUD()))
 		{
@@ -42,6 +70,32 @@ UAttributeMenuWidgetController* UAuraAbilitySystemLibrary::GetAttributeWidgetCon
 			return AuraHUD->GetAttributeMenuWidgetController(Params);
 		}
 	}
+	return nullptr;*/
+}
+
+USpellMenuWidgetController* UAuraAbilitySystemLibrary::GetSpellMenuWidgetController(const UObject* WorldObject)
+{
+	FWidgetControllerParams WCParam;
+	AAuraHUD* AuraHUD;
+	bool bSuccessParam = MakeWidgetControllerParams(WorldObject,WCParam, AuraHUD);
+	if (bSuccessParam)
+	{
+		return AuraHUD->GetSpellMenuWidgetController(WCParam);
+	}
+	/*
+	return nullptr;
+	if (APlayerController* PlayerController = UGameplayStatics::GetPlayerController(WorldObject, 0))
+	{
+		if (AAuraHUD* HUD = Cast<AAuraHUD>(PlayerController->GetHUD()))
+		{
+			AAuraPlayerState* PS = PlayerController->GetPlayerState<AAuraPlayerState>();
+			UAbilitySystemComponent* AbilitySystemComponent = PS->GetAbilitySystemComponent();
+			UAttributeSet* AttributeSet = PS->GetAttributeSet();
+			const FWidgetControllerParams Params = FWidgetControllerParams(PlayerController,PS,AbilitySystemComponent, AttributeSet);
+			return HUD->GetSpellMenuWidgetController(Params);
+		}
+	}
+	return nullptr;*/
 	return nullptr;
 }
 
@@ -72,9 +126,9 @@ void UAuraAbilitySystemLibrary::InitializeDefaultAttributes(const UObject* World
 	ASC->ApplyGameplayEffectSpecToSelf(*VitalAttributeSpecHandle.Data.Get());
 }
 
-void UAuraAbilitySystemLibrary::GiveStartupAbilites(const UObject* WorldContextObject, UAbilitySystemComponent* ASC, ECharacterClass CharacterClass)
+void UAuraAbilitySystemLibrary::GiveStartupAbilites(const UObject* WorldObject, UAbilitySystemComponent* ASC, ECharacterClass CharacterClass)
 {
-	UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldContextObject);
+	UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldObject);
 	if (CharacterClassInfo == nullptr)
 	{
 		return;
@@ -97,9 +151,9 @@ void UAuraAbilitySystemLibrary::GiveStartupAbilites(const UObject* WorldContextO
 }
 
 
-int32 UAuraAbilitySystemLibrary::GetXPRewardForClassAndLevel(const UObject* WorldContextObject, ECharacterClass CharacterClass, int32 CharacterLevel)
+int32 UAuraAbilitySystemLibrary::GetXPRewardForClassAndLevel(const UObject* WorldObject, ECharacterClass CharacterClass, int32 CharacterLevel)
 {
-	UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldContextObject);
+	UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldObject);
 	if (CharacterClassInfo == nullptr)
 	{
 		return 0;
@@ -109,12 +163,39 @@ int32 UAuraAbilitySystemLibrary::GetXPRewardForClassAndLevel(const UObject* Worl
 	return static_cast<int32>(XPReward);
 }
 
+FGameplayEffectContextHandle UAuraAbilitySystemLibrary::ApplyDamageEffect(const FDamageEffectParams& DamageEffectParams)
+{
+	const FAuraGameplayTags& GameplayTags = FAuraGameplayTags::Get();
+	const AActor*  SourceAvatarActor = DamageEffectParams.SourceASC->GetAvatarActor();
+	FGameplayEffectContextHandle EffectContextHandle =  DamageEffectParams.SourceASC->MakeEffectContext();
+	EffectContextHandle.AddSourceObject(SourceAvatarActor);
+	const FGameplayEffectSpecHandle SpecHandle = DamageEffectParams.SourceASC->MakeOutgoingSpec(DamageEffectParams.DamageGameplayEffectClass, DamageEffectParams.AbilityLevel, EffectContextHandle);
+
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, DamageEffectParams.DamageType, DamageEffectParams.BaseDamage);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Debuff_Chance, DamageEffectParams.DebuffChance);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Debuff_Duration, DamageEffectParams.DebuffDuration);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Debuff_Frequency, DamageEffectParams.DebuffFrequency);
+	UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, GameplayTags.Damage, DamageEffectParams.DebuffDamage);
+
+	DamageEffectParams.TargetASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data);
+	return EffectContextHandle;
+}
+
 
 UCharacterClassInfo* UAuraAbilitySystemLibrary::GetCharacterClassInfo(const UObject* WorldContextContext)
 {
 	if (const AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextContext)))
 	{
 		return AuraGameMode->CharacterClassInfo;
+	}
+	return nullptr;
+}
+
+UAbilityInfo* UAuraAbilitySystemLibrary::GetAbilityInfo(const UObject* WorldContextObject)
+{
+	if (const AAuraGameModeBase* GameModeBase = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject)))
+	{
+		return GameModeBase->AbilityInfo;
 	}
 	return nullptr;
 }

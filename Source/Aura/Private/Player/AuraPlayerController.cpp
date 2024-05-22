@@ -117,7 +117,7 @@ void AAuraPlayerController::CursorTrace()
 
 void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)	
 {
-	UE_LOG(LogTemp, Warning, TEXT("AbilityInputTagPressed"));
+	//UE_LOG(LogTemp, Warning, TEXT("AbilityInputTagPressed"));
 	if (InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		bTargeting = ThisActor ? true : false;
@@ -127,7 +127,7 @@ void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 
 void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 {
-	UE_LOG(LogTemp, Warning, TEXT("AbilityInputTagReleased"));
+	//UE_LOG(LogTemp, Warning, TEXT("AbilityInputTagReleased"));
 	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		if (GetASC())

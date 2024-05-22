@@ -1,7 +1,46 @@
 #pragma once
 
+#include "GameplayEffect.h"
 #include "GameplayEffectTypes.h"
 #include "AuraAbilityTypes.Generated.h"
+
+
+USTRUCT(BlueprintType)
+struct FDamageEffectParams
+{
+	GENERATED_BODY()
+	FDamageEffectParams(){}
+	UPROPERTY()
+	TObjectPtr<UObject> WorldContextObject = nullptr;
+
+	UPROPERTY()
+	TSubclassOf<UGameplayEffect> DamageGameplayEffectClass = nullptr;
+
+	UPROPERTY()
+	TObjectPtr<UAbilitySystemComponent> SourceASC;
+	UPROPERTY()
+	TObjectPtr<UAbilitySystemComponent> TargetASC;
+	UPROPERTY()
+	float BaseDamage = 0;
+
+	UPROPERTY()
+	float AbilityLevel = 0;
+
+	UPROPERTY()
+	FGameplayTag DamageType = FGameplayTag();
+
+	UPROPERTY()
+	float DebuffChance = 0;
+
+	UPROPERTY()
+	float DebuffDamage = 0;
+	UPROPERTY()
+	float DebuffDuration = 0;
+
+	UPROPERTY()
+	float DebuffFrequency = 0;
+};
+
 
 USTRUCT(BlueprintType)
 struct FAuraGameplayEffectContext : public FGameplayEffectContext

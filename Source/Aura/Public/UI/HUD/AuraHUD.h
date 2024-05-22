@@ -8,6 +8,7 @@
 #include "UI/WidgetController/AuraWidgetController.h"
 #include "AuraHUD.generated.h"
 
+class USpellMenuWidgetController;
 class UAttributeMenuWidgetController;
 struct FWidgetControllerParams;
 class UOverlayWidgetController;
@@ -31,6 +32,7 @@ public:
 	UOverlayWidgetController* GetOverlayWidgetController(const FWidgetControllerParams& WCParams);
 	UAttributeMenuWidgetController* GetAttributeMenuWidgetController(const FWidgetControllerParams& WCParam);
 	//void InitAttributeMenu(APlayerController* PC, APlayerState* PS, UAbilitySystemComponent* ASC, UAttributeSet* AS);
+	USpellMenuWidgetController* GetSpellMenuWidgetController (const FWidgetControllerParams& WCParam);
 	
 protected:
 
@@ -48,14 +50,13 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UOverlayWidgetController> OverlayWidgetControllerClass;
 
-
+	
+	
 	//attribute
-
+	
 	TObjectPtr<UAttributeMenuWidgetController> AttributeMenuWidgetController;
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UAttributeMenuWidgetController> AttributeMenuWidgetControllerClass;
-	
-	
 	
 	UPROPERTY()
 	TObjectPtr<UAuraUserWidget> AttributeMenuWidget;
@@ -63,4 +64,14 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<UAuraUserWidget> AttributeMenuWidgetClass;
 
+
+	//spellmenu
+	UPROPERTY()
+	TObjectPtr<USpellMenuWidgetController> SpellMenuWidgetController;
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<USpellMenuWidgetController> SpellMenuWidgetControllerClass;
+	UPROPERTY()
+	TObjectPtr<UAuraUserWidget> SpellMenuWidget;
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UAuraUserWidget> SpellMenuWidgetClass;
 };
