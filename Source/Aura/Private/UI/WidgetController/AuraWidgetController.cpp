@@ -1,24 +1,23 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Druid Mechanics
 
 
 #include "UI/WidgetController/AuraWidgetController.h"
 
-#include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "Player/AuraPlayerController.h"
 #include "Player/AuraPlayerState.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
-#include "Aura/AuraLogChannels.h"
 
-void UAuraWidgetController::SetWidgetControllerParams(const FWidgetControllerParams& WCParam)
+void UAuraWidgetController::SetWidgetControllerParams(const FWidgetControllerParams& WCParams)
 {
-	PlayerController = WCParam.PlayerController;
-	PlayerState = WCParam.PlayerState;
-	AbilitySystemComponent = WCParam.AbilitySystemComponent;
-	AttributeSet = WCParam.Attributes;
+	PlayerController = WCParams.PlayerController;
+	PlayerState = WCParams.PlayerState;
+	AbilitySystemComponent = WCParams.AbilitySystemComponent;
+	AttributeSet = WCParams.AttributeSet;
 }
 
-void UAuraWidgetController::BroadCastInitialValue()
+void UAuraWidgetController::BroadcastInitialValues()
 {
 	
 }
@@ -28,45 +27,8 @@ void UAuraWidgetController::BindCallbacksToDependencies()
 	
 }
 
-AAuraPlayerController* UAuraWidgetController::GetAuraPC()
+void UAuraWidgetController::BroadcastAbilityInfo()
 {
-	if (AuraPlayerController == nullptr)
-	{
-		AuraPlayerController = CastChecked<AAuraPlayerController>(PlayerController);
-	}
-	return AuraPlayerController;
-}
-
-AAuraPlayerState* UAuraWidgetController::GetAuraPS()
-{
-	if (AuraPlayerState == nullptr)
-	{
-		AuraPlayerState = CastChecked<AAuraPlayerState>(PlayerState);
-	}
-	return AuraPlayerState;
-}
-
-UAuraAbilitySystemComponent* UAuraWidgetController::GetAuraASC()
-{
-	if (AuraAbilitySystemComponent == nullptr)
-	{
-		AuraAbilitySystemComponent = CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
-	}
-	return AuraAbilitySystemComponent;
-}
-
-UAuraAttributeSet* UAuraWidgetController::GetAuraAS()
-{
-	if (AuraAttributeSet == nullptr)
-	{
-		AuraAttributeSet = CastChecked<UAuraAttributeSet>(AttributeSet);
-	}
-	return AuraAttributeSet;
-}
-
-void UAuraWidgetController::BroadCastAbilityInfo()
-{
-	//UE_LOG(LogAura, Warning, TEXT("Menu that BroadCastAbilityInfo: %s"), *this->GetName());
 	if (!GetAuraASC()->bStartupAbilitiesGiven) return;
 
 	FForEachAbility BroadcastDelegate;
@@ -78,4 +40,40 @@ void UAuraWidgetController::BroadCastAbilityInfo()
 		AbilityInfoDelegate.Broadcast(Info);
 	});
 	GetAuraASC()->ForEachAbility(BroadcastDelegate);
+}
+
+AAuraPlayerController* UAuraWidgetController::GetAuraPC()
+{
+	if (AuraPlayerController == nullptr)
+	{
+		AuraPlayerController = Cast<AAuraPlayerController>(PlayerController);
+	}
+	return AuraPlayerController;
+}
+
+AAuraPlayerState* UAuraWidgetController::GetAuraPS()
+{
+	if (AuraPlayerState == nullptr)
+	{
+		AuraPlayerState = Cast<AAuraPlayerState>(PlayerState);
+	}
+	return AuraPlayerState;
+}
+
+UAuraAbilitySystemComponent* UAuraWidgetController::GetAuraASC()
+{
+	if (AuraAbilitySystemComponent == nullptr)
+	{
+		AuraAbilitySystemComponent = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent);
+	}
+	return AuraAbilitySystemComponent;
+}
+
+UAuraAttributeSet* UAuraWidgetController::GetAuraAS()
+{
+	if (AuraAttributeSet == nullptr)
+	{
+		AuraAttributeSet = Cast<UAuraAttributeSet>(AttributeSet);
+	}
+	return AuraAttributeSet;
 }

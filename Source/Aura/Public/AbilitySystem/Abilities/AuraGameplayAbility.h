@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Druid Mechanics
 
 #pragma once
 
@@ -17,12 +17,13 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	FGameplayTag StartupInputTag;
-	
+
 	virtual FString GetDescription(int32 Level);
 	virtual FString GetNextLevelDescription(int32 Level);
-	static  FString GetLockedDescription(int32 Level);
+	static FString GetLockedDescription(int32 Level);
 
 protected:
-	float GetManaCost(float InLevel = 1);
-	float GetCooldown(float InLevel = 1);
+
+	float GetManaCost(float InLevel = 1.f) const;
+	float GetCooldown(float InLevel = 1.f) const;
 };

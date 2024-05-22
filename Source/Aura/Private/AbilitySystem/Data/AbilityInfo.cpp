@@ -1,14 +1,13 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Druid Mechanics
 
 
 #include "AbilitySystem/Data/AbilityInfo.h"
 
 #include "Aura/AuraLogChannels.h"
 
-FAuraAbilityInfo UAbilityInfo::FindAbilityInfoForTag(const FGameplayTag& AbilityTag, bool bLogNotFound)
+FAuraAbilityInfo UAbilityInfo::FindAbilityInfoForTag(const FGameplayTag& AbilityTag, bool bLogNotFound) const
 {
-
-	for (const FAuraAbilityInfo& Info : AbilityInformations)
+	for (const FAuraAbilityInfo& Info : AbilityInformation)
 	{
 		if (Info.AbilityTag == AbilityTag)
 		{
@@ -18,9 +17,8 @@ FAuraAbilityInfo UAbilityInfo::FindAbilityInfoForTag(const FGameplayTag& Ability
 
 	if (bLogNotFound)
 	{
-		//UE_LOG(LogTemp, )
-		UE_LOG(LogAura, Error, TEXT("Cannot find info for Ability TAG [%s] on AbilityInfo[%s]"), *AbilityTag.ToString(), *GetNameSafe(this));
-
+		UE_LOG(LogAura, Error, TEXT("Can't find info for AbilityTag [%s] on AbilityInfo [%s]"), *AbilityTag.ToString(), *GetNameSafe(this));
 	}
+
 	return FAuraAbilityInfo();
 }

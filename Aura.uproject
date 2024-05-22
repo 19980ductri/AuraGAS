@@ -1,6 +1,6 @@
 {
 	"FileVersion": 3,
-	"EngineAssociation": "{8A2276D4-4D6A-2592-9EB0-A7AAE9A55DEB}",
+	"EngineAssociation": "5.3",
 	"Category": "",
 	"Description": "",
 	"Modules": [
@@ -14,7 +14,9 @@
 				"UMG",
 				"CoreUObject",
 				"EnhancedInput",
-				"AIModule"
+				"AIModule",
+				"Niagara",
+				"ModelViewViewModel"
 			]
 		}
 	],
@@ -31,19 +33,11 @@
 			"Enabled": true
 		},
 		{
-			"Name": "AnimationWarping",
-			"Enabled": true
-		},
-		{
 			"Name": "MotionWarping",
 			"Enabled": true
 		},
 		{
-			"Name": "GameFeatures",
-			"Enabled": true
-		},
-		{
-			"Name": "AbilitySystemGameFeatureActions",
+			"Name": "ModelViewViewModel",
 			"Enabled": true
 		}
 	]

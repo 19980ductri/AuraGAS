@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Druid Mechanics
 
 
 #include "Player/AuraPlayerState.h"
@@ -9,59 +9,69 @@
 
 AAuraPlayerState::AAuraPlayerState()
 {
-	NetUpdateFrequency = 100;
-	
 	AbilitySystemComponent = CreateDefaultSubobject<UAuraAbilitySystemComponent>("AbilitySystemComponent");
 	AbilitySystemComponent->SetIsReplicated(true);
-	/*
-	 * for mixed Replication mode: the controller must be the owner of OwnerActor. For Pawns, this is set auto in PossessedBy()
-	 * the owner of PlayerState is auto set is the Controller
-	 * if OwnerActor is not the PlayerState, SetOwner() must be called on the OwnerActor to set its owner to the Controller
-	 */
 	AbilitySystemComponent->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
+
 	AttributeSet = CreateDefaultSubobject<UAuraAttributeSet>("AttributeSet");
+	
+	NetUpdateFrequency = 100.f;
 }
 
 void AAuraPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	
 	DOREPLIFETIME(AAuraPlayerState, Level);
 	DOREPLIFETIME(AAuraPlayerState, XP);
-	DOREPLIFETIME(AAuraPlayerState, AttributePoint);
-	DOREPLIFETIME(AAuraPlayerState, SpellPoint);
+	DOREPLIFETIME(AAuraPlayerState, AttributePoints);
+	DOREPLIFETIME(AAuraPlayerState, SpellPoints);
 }
-
 
 UAbilitySystemComponent* AAuraPlayerState::GetAbilitySystemComponent() const
 {
 	return AbilitySystemComponent;
 }
 
-int32 AAuraPlayerState::GetPlayerLevel() const
+void AAuraPlayerState::AddToXP(int32 InXP)
 {
-	return Level;
+	XP += InXP;
+	OnXPChangedDelegate.Broadcast(XP);
 }
 
 void AAuraPlayerState::AddToLevel(int32 InLevel)
 {
 	Level += InLevel;
-	OnLevelChangedDelegate.Broadcast(Level);
+	OnLevelChangedDelegate.Broadcast(Level, true);
+}
+
+void AAuraPlayerState::SetXP(int32 InXP)
+{
+	XP = InXP;
+	OnXPChangedDelegate.Broadcast(XP);
 }
 
 void AAuraPlayerState::SetLevel(int32 InLevel)
 {
 	Level = InLevel;
-	OnLevelChangedDelegate.Broadcast(Level);
+	OnLevelChangedDelegate.Broadcast(Level, false);
 }
 
-int32 AAuraPlayerState::GetXP() const
+void AAuraPlayerState::SetAttributePoints(int32 InPoints)
 {
-	return  XP;
+	AttributePoints = InPoints;
+	OnAttributePointsChangedDelegate.Broadcast(AttributePoints);
+}
+
+void AAuraPlayerState::SetSpellPoints(int32 InPoints)
+{
+	SpellPoints = InPoints;
+	OnSpellPointsChangedDelegate.Broadcast(SpellPoints);
 }
 
 void AAuraPlayerState::OnRep_Level(int32 OldLevel)
 {
-	OnLevelChangedDelegate.Broadcast(Level);
+	OnLevelChangedDelegate.Broadcast(Level, true);
 }
 
 void AAuraPlayerState::OnRep_XP(int32 OldXP)
@@ -69,60 +79,24 @@ void AAuraPlayerState::OnRep_XP(int32 OldXP)
 	OnXPChangedDelegate.Broadcast(XP);
 }
 
-void AAuraPlayerState::OnRep_AttributePoint()
+void AAuraPlayerState::OnRep_AttributePoints(int32 OldAttributePoints)
 {
-	OnAttributePointChangedDelegate.Broadcast(AttributePoint);
+	OnAttributePointsChangedDelegate.Broadcast(AttributePoints);
 }
 
-void AAuraPlayerState::OnRep_SpellPoint()
+void AAuraPlayerState::OnRep_SpellPoints(int32 OldSpellPoints)
 {
-	OnSpellPointChangedDelegate.Broadcast(SpellPoint);
+	OnSpellPointsChangedDelegate.Broadcast(SpellPoints);
 }
 
-void AAuraPlayerState::SetXP(int32 NewXP)
+void AAuraPlayerState::AddToAttributePoints(int32 InPoints)
 {
-	XP = NewXP;
-	OnXPChangedDelegate.Broadcast(XP);
+	AttributePoints += InPoints;
+	OnAttributePointsChangedDelegate.Broadcast(AttributePoints);
 }
 
-void AAuraPlayerState::AddToXP(int32 XPAdded)
+void AAuraPlayerState::AddToSpellPoints(int32 InPoints)
 {
-	XP += XPAdded;
-	OnXPChangedDelegate.Broadcast(XP);
-}
-
-void AAuraPlayerState::SetAttributePoint(int32 InAttributePoint)
-{
-	AttributePoint = InAttributePoint;
-	OnAttributePointChangedDelegate.Broadcast(AttributePoint);
-}
-
-void AAuraPlayerState::AddToAttributePoint(int32 InAttributePoint)
-{
-	AttributePoint += InAttributePoint;
-	OnAttributePointChangedDelegate.Broadcast(AttributePoint);
-}
-
-int32 AAuraPlayerState::GetAttributePoint() const
-{
-	return AttributePoint;
-}
-
-
-void AAuraPlayerState::SetSpellPoint(int32 InSpellPoint)
-{
-	SpellPoint = InSpellPoint;
-	OnSpellPointChangedDelegate.Broadcast(SpellPoint);
-}
-
-void AAuraPlayerState::AddToSpellPoint(int32 InSpellPoint)
-{
-	SpellPoint += InSpellPoint;
-	OnSpellPointChangedDelegate.Broadcast(SpellPoint);
-}
-
-
-int32 AAuraPlayerState::GetSpellPoint() const
-{
-	return SpellPoint;
+	SpellPoints += InPoints;
+	OnSpellPointsChangedDelegate.Broadcast(SpellPoints);
 }

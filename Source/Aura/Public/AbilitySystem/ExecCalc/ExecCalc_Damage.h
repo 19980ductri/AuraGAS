@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Druid Mechanics
 
 #pragma once
 
@@ -16,12 +16,9 @@ class AURA_API UExecCalc_Damage : public UGameplayEffectExecutionCalculation
 public:
 	UExecCalc_Damage();
 	void DetermineDebuff(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
-		const FGameplayEffectSpec Spec,
-		FAggregatorEvaluateParameters EvaluationParam,
-		const TMap<FGameplayTag, FGameplayEffectAttributeCaptureDefinition>& InTagsToCaptureDefs) const;
+	                     const FGameplayEffectSpec& Spec,
+	                     FAggregatorEvaluateParameters EvaluationParameters,
+	                     const TMap<FGameplayTag, FGameplayEffectAttributeCaptureDefinition>& InTagsToDefs) const;
 
-	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams,
-	                                    FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
-
-	//void CalculateCapturedAttributeMagnitude();
+	virtual void Execute_Implementation(const FGameplayEffectCustomExecutionParameters& ExecutionParams, FGameplayEffectCustomExecutionOutput& OutExecutionOutput) const override;
 };

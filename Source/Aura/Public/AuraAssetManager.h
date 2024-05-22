@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Druid Mechanics
 
 #pragma once
 
@@ -13,11 +13,11 @@ UCLASS()
 class AURA_API UAuraAssetManager : public UAssetManager
 {
 	GENERATED_BODY()
-
 public:
-	static const UAuraAssetManager& Get();
-	virtual  void StartInitialLoading() override;
-private:
 
-	
+	static UAuraAssetManager& Get();
+
+protected:
+
+	virtual void StartInitialLoading() override;
 };

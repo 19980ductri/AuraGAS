@@ -1,8 +1,7 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Druid Mechanics
 
 
 #include "AI/BTService_FindNearestPlayer.h"
-
 #include "AIController.h"
 #include "BehaviorTree/BTFunctionLibrary.h"
 #include "Kismet/GameplayStatics.h"
@@ -34,5 +33,4 @@ void UBTService_FindNearestPlayer::TickNode(UBehaviorTreeComponent& OwnerComp, u
 	}
 	UBTFunctionLibrary::SetBlackboardValueAsObject(this,TargetToFollowSelector, ClosestActor);
 	UBTFunctionLibrary::SetBlackboardValueAsFloat(this, DistanceToTargetSelector, ClosestDistance);
-	
 }

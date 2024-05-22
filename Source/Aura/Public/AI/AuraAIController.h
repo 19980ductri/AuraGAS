@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Druid Mechanics
 
 #pragma once
 
@@ -9,6 +9,9 @@
 class UBlackboardComponent;
 class UBehaviorTreeComponent;
 
+/**
+ * 
+ */
 UCLASS()
 class AURA_API AAuraAIController : public AAIController
 {

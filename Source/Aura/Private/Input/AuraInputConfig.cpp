@@ -1,14 +1,13 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Druid Mechanics
 
 
 #include "Input/AuraInputConfig.h"
 
-const UInputAction* UAuraInputConfig::FindAbilityInputActionForTag(const FGameplayTag& InputTag,
-	bool bLogNotFound) const
+const UInputAction* UAuraInputConfig::FindAbilityInputActionForTag(const FGameplayTag& InputTag, bool bLogNotFound) const
 {
-	for(auto& Action : AbilityInputActions)
+	for (const FAuraInputAction& Action: AbilityInputActions)
 	{
-		if (Action.InputAction && InputTag == Action.InputTag)
+		if (Action.InputAction && Action.InputTag == InputTag)
 		{
 			return Action.InputAction;
 		}
@@ -16,7 +15,8 @@ const UInputAction* UAuraInputConfig::FindAbilityInputActionForTag(const FGamepl
 
 	if (bLogNotFound)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Can't find AbilityInputAction for tag [%s] on InputTag [%s]"), *InputTag.ToString(), *GetNameSafe(this));
+		UE_LOG(LogTemp, Error, TEXT("Can't find AbilityInputAction for InputTag [%s], on InputConfig [%s]"), *InputTag.ToString(), *GetNameSafe(this));
 	}
+
 	return nullptr;
 }

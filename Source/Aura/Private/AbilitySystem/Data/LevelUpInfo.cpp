@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Druid Mechanics
 
 
 #include "AbilitySystem/Data/LevelUpInfo.h"
@@ -9,12 +9,11 @@ int32 ULevelUpInfo::FindLevelForXP(int32 XP) const
 	bool bSearching = true;
 	while (bSearching)
 	{
-		//
-		if (LevelUpInformations.Num() - 1 <= Level)
-		{
-			return Level;
-		}
-		if (XP >= LevelUpInformations[Level].LevelUpRequirement)
+		// LevelUpInformation[1] = Level 1 Information
+		// LevelUpInformation[2] = Level 1 Information
+		if (LevelUpInformation.Num() - 1 <= Level) return Level;
+
+		if (XP >= LevelUpInformation[Level].LevelUpRequirement)
 		{
 			++Level;
 		}
@@ -23,6 +22,5 @@ int32 ULevelUpInfo::FindLevelForXP(int32 XP) const
 			bSearching = false;
 		}
 	}
-	
 	return Level;
 }

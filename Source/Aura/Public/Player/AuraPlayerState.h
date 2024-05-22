@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Druid Mechanics
 
 #pragma once
 
@@ -7,17 +7,22 @@
 #include "GameFramework/PlayerState.h"
 #include "AuraPlayerState.generated.h"
 
-class ULevelUpInfo;
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerStatChanged, int32 /*value*/)
 
 class UAbilitySystemComponent;
 class UAttributeSet;
+class ULevelUpInfo;
+
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnPlayerStatChanged, int32 /*StatValue*/)
+DECLARE_MULTICAST_DELEGATE_TwoParams(FOnLevelChanged, int32 /*StatValue*/, bool /*bLevelUp*/)
+
+/**
+ * 
+ */
 UCLASS()
 class AURA_API AAuraPlayerState : public APlayerState, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 public:
-
 	AAuraPlayerState();
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
@@ -25,54 +30,58 @@ public:
 
 	UPROPERTY(EditDefaultsOnly)
 	TObjectPtr<ULevelUpInfo> LevelUpInfo;
-	
-	int32 GetPlayerLevel() const;
-	void AddToLevel(int32 InLevel);
-	void SetLevel(int32 InLevel);
-	
-	int32 GetXP() const;
-	void SetXP(int32 NewXP);
-	void AddToXP(int32 XPAdded);
 
-	void SetAttributePoint(int32 InAttributePoint);
-	void AddToAttributePoint(int32 InAttributePoint);
-	int32 GetAttributePoint() const;
-
-	void SetSpellPoint(int32 InSpellPoint);
-	void AddToSpellPoint(int32 InSpellPoint);
-	int32 GetSpellPoint() const;
-	
-	
 	FOnPlayerStatChanged OnXPChangedDelegate;
-	FOnPlayerStatChanged OnLevelChangedDelegate;
-	FOnPlayerStatChanged OnAttributePointChangedDelegate;
-	FOnPlayerStatChanged OnSpellPointChangedDelegate;
+	FOnLevelChanged OnLevelChangedDelegate;
+	FOnPlayerStatChanged OnAttributePointsChangedDelegate;
+	FOnPlayerStatChanged OnSpellPointsChangedDelegate;
+
+	FORCEINLINE int32 GetPlayerLevel() const { return Level; }
+	FORCEINLINE int32 GetXP() const { return XP; }
+	FORCEINLINE int32 GetAttributePoints() const { return AttributePoints; }
+	FORCEINLINE int32 GetSpellPoints() const { return SpellPoints; }
+
+	void AddToXP(int32 InXP);
+	void AddToLevel(int32 InLevel);
+	void AddToAttributePoints(int32 InPoints);
+	void AddToSpellPoints(int32 InPoints);
+	
+	void SetXP(int32 InXP);
+	void SetLevel(int32 InLevel);
+	void SetAttributePoints(int32 InPoints);
+	void SetSpellPoints(int32 InPoints);
 	
 protected:
+	
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UAbilitySystemComponent> AbilitySystemComponent;
-	
-	UPROPERTY(VisibleAnywhere)
+
+	UPROPERTY()
 	TObjectPtr<UAttributeSet> AttributeSet;
-		
+
 private:
+
 	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_Level)
-	int32 Level = 1;
+	int32 Level = 100;
+
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_XP)
+	int32 XP = 0;
+
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_AttributePoints)
+	int32 AttributePoints = 100;
+
+	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_SpellPoints)
+	int32 SpellPoints = 100;
+	
 	UFUNCTION()
 	void OnRep_Level(int32 OldLevel);
-	
-	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_XP)
-	int32 XP;
+
 	UFUNCTION()
 	void OnRep_XP(int32 OldXP);
 
-	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_AttributePoint)
-	int32 AttributePoint = 0;
 	UFUNCTION()
-	void OnRep_AttributePoint();
+	void OnRep_AttributePoints(int32 OldAttributePoints);
 
-	UPROPERTY(VisibleAnywhere, ReplicatedUsing=OnRep_SpellPoint)
-	int32 SpellPoint = 0;
 	UFUNCTION()
-	void OnRep_SpellPoint();
+	void OnRep_SpellPoints(int32 OldSpellPoints);
 };

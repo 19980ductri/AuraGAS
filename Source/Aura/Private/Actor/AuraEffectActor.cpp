@@ -1,56 +1,84 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright Druid Mechanics
 
 
 #include "Actor/AuraEffectActor.h"
-#include "GameplayEffect.h"
-#include "AbilitySystemComponent.h"
-#include "AbilitySystemBlueprintLibrary.h"
 
-// Sets default values
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
+#include "Kismet/KismetMathLibrary.h"
+
 AAuraEffectActor::AAuraEffectActor()
 {
 	PrimaryActorTick.bCanEverTick = false;
-	
+
 	SetRootComponent(CreateDefaultSubobject<USceneComponent>("SceneRoot"));
 }
 
+void AAuraEffectActor::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	RunningTime += DeltaTime;
+	const float SinePeriod = 2 * PI / SinePeriodConstant;
+	if (RunningTime > SinePeriod)
+	{
+		RunningTime = 0.f;
+	}
+	ItemMovement(DeltaTime);
+}
+
+void AAuraEffectActor::ItemMovement(float DeltaTime)
+{
+	if (bRotates)
+	{
+		const FRotator DeltaRotation(0.f, DeltaTime * RotationRate, 0.f);
+		CalculatedRotation = UKismetMathLibrary::ComposeRotators(CalculatedRotation, DeltaRotation);
+	}
+	if (bSinusoidalMovement)
+	{
+		const float Sine = SineAmplitude * FMath::Sin(RunningTime * SinePeriodConstant);
+		CalculatedLocation = InitialLocation + FVector(0.f, 0.f, Sine);
+	}
+}
 
 
 void AAuraEffectActor::BeginPlay()
 {
 	Super::BeginPlay();
-	
+	InitialLocation = GetActorLocation();
+	CalculatedLocation = InitialLocation;
+	CalculatedRotation = GetActorRotation();
 }
 
-void AAuraEffectActor::ApplyEffectToTarget(AActor* Target, TSubclassOf<UGameplayEffect> GameplayEffectClass)
+void AAuraEffectActor::StartSinusoidalMovement()
 {
-	if (Target->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies)
-	{
-		return;
-	}
-	//get the ability system 
-	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Target);
+	bSinusoidalMovement = true;
+	InitialLocation = GetActorLocation();
+	CalculatedLocation = InitialLocation;
+}
 
-	if (TargetASC == nullptr)
-	{
-		return;
-	}
+void AAuraEffectActor::StartRotation()
+{
+	bRotates = true;
+	CalculatedRotation = GetActorRotation();
+}
+
+void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGameplayEffect> GameplayEffectClass)
+{
+	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
+	
+	UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
+	if (TargetASC == nullptr) return;
 
 	check(GameplayEffectClass);
-	
 	FGameplayEffectContextHandle EffectContextHandle = TargetASC->MakeEffectContext();
-
 	EffectContextHandle.AddSourceObject(this);
+	const FGameplayEffectSpecHandle EffectSpecHandle = TargetASC->MakeOutgoingSpec(GameplayEffectClass, ActorLevel, EffectContextHandle);
+	const FActiveGameplayEffectHandle ActiveEffectHandle = TargetASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
 
-	const FGameplayEffectSpecHandle EffectSpecHandle = TargetASC->MakeOutgoingSpec(GameplayEffectClass,ActorLevel, EffectContextHandle);
-	
-	const FActiveGameplayEffectHandle ActiveGameplayEffectHandle = TargetASC->ApplyGameplayEffectSpecToSelf(*EffectSpecHandle.Data.Get());
-	
-	const bool bIsInfinite = EffectSpecHandle.Data.Get()->Def.Get()->DurationPolicy == EGameplayEffectDurationType::Infinite;
-
+	const bool bIsInfinite =  EffectSpecHandle.Data.Get()->Def.Get()->DurationPolicy == EGameplayEffectDurationType::Infinite;
 	if (bIsInfinite && InfiniteEffectRemovalPolicy == EEffectRemovalPolicy::RemoveOnEndOverlap)
 	{
-		ActiveEffectHandles.Add(ActiveGameplayEffectHandle, TargetASC);
+		ActiveEffectHandles.Add(ActiveEffectHandle, TargetASC);
 	}
 
 	if (!bIsInfinite)
@@ -61,82 +89,57 @@ void AAuraEffectActor::ApplyEffectToTarget(AActor* Target, TSubclassOf<UGameplay
 
 void AAuraEffectActor::OnOverlap(AActor* TargetActor)
 {
-	if ( TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies)
-	{
-		return;
-	}
-	ApplyEffectOnOverlap(TargetActor);
-}
-
-
-void AAuraEffectActor::EndOverlap(AActor* TargetActor)
-{
-	if ( TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies)
-	{
-		return;
-	}
-	ApplyEffectOnEndOverlap(TargetActor);
-}
-
-
-
-void AAuraEffectActor::ApplyEffectOnOverlap(AActor* TargetActor)
-{
+	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
 	
-	if (InstantEffectyPolicy == EEffectApplyPolicy::ApplyOnOverlap)
+	if (InstantEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap)
 	{
 		ApplyEffectToTarget(TargetActor, InstantGameplayEffectClass);
 	}
-
-	if (DurationEffectPolicy == EEffectApplyPolicy::ApplyOnOverlap)
+	if (DurationEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap)
 	{
 		ApplyEffectToTarget(TargetActor, DurationGameplayEffectClass);
 	}
-
-	if (InfiniteEffectApplyPolicy == EEffectApplyPolicy::ApplyOnOverlap)
+	if (InfiniteEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnOverlap)
 	{
 		ApplyEffectToTarget(TargetActor, InfiniteGameplayEffectClass);
 	}
 }
 
-void AAuraEffectActor::ApplyEffectOnEndOverlap(AActor* TargetActor)
+void AAuraEffectActor::OnEndOverlap(AActor* TargetActor)
 {
-	if (InstantEffectyPolicy == EEffectApplyPolicy::ApplyOnEndOverlap)
+	if (TargetActor->ActorHasTag(FName("Enemy")) && !bApplyEffectsToEnemies) return;
+	
+	if (InstantEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap)
 	{
 		ApplyEffectToTarget(TargetActor, InstantGameplayEffectClass);
 	}
-
-	if (DurationEffectPolicy == EEffectApplyPolicy::ApplyOnEndOverlap)
+	if (DurationEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap)
 	{
 		ApplyEffectToTarget(TargetActor, DurationGameplayEffectClass);
 	}
-
-	if (InfiniteEffectApplyPolicy == EEffectApplyPolicy::ApplyOnEndOverlap)
+	if (InfiniteEffectApplicationPolicy == EEffectApplicationPolicy::ApplyOnEndOverlap)
 	{
 		ApplyEffectToTarget(TargetActor, InfiniteGameplayEffectClass);
 	}
-
-	
 	if (InfiniteEffectRemovalPolicy == EEffectRemovalPolicy::RemoveOnEndOverlap)
 	{
 		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(TargetActor);
-		if (TargetASC)
-		{
-			TArray<FActiveGameplayEffectHandle> HandlesToRemove;
-			for (auto HandlePair : ActiveEffectHandles)
-			{
-				if (TargetASC == HandlePair.Value)
-				{
-					TargetASC->RemoveActiveGameplayEffect(HandlePair.Key, 1); //stacks and number of stacks to remove
-					HandlesToRemove.Add(HandlePair.Key);
-				}
-			}
+		if (!IsValid(TargetASC)) return;
 
-			for (auto& ToRemove : HandlesToRemove)
+		TArray<FActiveGameplayEffectHandle> HandlesToRemove;
+		for (TTuple<FActiveGameplayEffectHandle, UAbilitySystemComponent*> HandlePair : ActiveEffectHandles)
+		{
+			if (TargetASC == HandlePair.Value)
 			{
-				ActiveEffectHandles.FindAndRemoveChecked(ToRemove);
+				TargetASC->RemoveActiveGameplayEffect(HandlePair.Key, 1);
+				HandlesToRemove.Add(HandlePair.Key);
 			}
+		}
+		for (FActiveGameplayEffectHandle& Handle : HandlesToRemove)
+		{
+			ActiveEffectHandles.FindAndRemoveChecked(Handle);
 		}
 	}
 }
+
 
