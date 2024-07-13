@@ -1,4 +1,3 @@
-// Copyright Druid Mechanics
 
 
 #include "AbilitySystem/Data/AbilityInfo.h"

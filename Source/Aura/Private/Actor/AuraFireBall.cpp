@@ -1,5 +1,3 @@
-// Copyright Druid Mechanics
-
 
 #include "Actor/AuraFireBall.h"
 

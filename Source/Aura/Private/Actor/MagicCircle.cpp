@@ -1,4 +1,3 @@
-// Copyright Druid Mechanics
 
 
 #include "Actor/MagicCircle.h"

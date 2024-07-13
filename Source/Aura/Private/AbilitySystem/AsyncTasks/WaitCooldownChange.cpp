@@ -1,5 +1,4 @@
-// Copyright Druid Mechanics
-
+//
 
 #include "AbilitySystem/AsyncTasks/WaitCooldownChange.h"
 #include "AbilitySystemComponent.h"

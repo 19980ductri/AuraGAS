@@ -1,5 +1,4 @@
-// Copyright Druid Mechanics
-
+//
 
 #include "Interaction/SaveInterface.h"
 

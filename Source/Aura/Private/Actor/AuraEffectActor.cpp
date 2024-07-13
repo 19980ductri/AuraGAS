@@ -1,11 +1,11 @@
-// Copyright Druid Mechanics
 
 
 #include "Actor/AuraEffectActor.h"
-
+#include "Components/SceneComponent.h"
 #include "AbilitySystemBlueprintLibrary.h"
 #include "AbilitySystemComponent.h"
 #include "Kismet/KismetMathLibrary.h"
+
 
 AAuraEffectActor::AAuraEffectActor()
 {

@@ -1,4 +1,4 @@
-// Copyright Druid Mechanics
+
 
 using UnrealBuildTool;
 

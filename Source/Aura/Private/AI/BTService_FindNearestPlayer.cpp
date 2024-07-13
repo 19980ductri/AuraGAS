@@ -1,4 +1,4 @@
-// Copyright Druid Mechanics
+
 
 
 #include "AI/BTService_FindNearestPlayer.h"

@@ -1,8 +1,6 @@
-// Copyright Druid Mechanics
-
+//#include "AuraAssetManager.h"
 
 #include "AuraAssetManager.h"
-
 #include "AbilitySystemGlobals.h"
 #include "AuraGameplayTags.h"
 
