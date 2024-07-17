@@ -50,6 +50,7 @@ void UAuraAbilitySystemComponent::AddCharacterAbilitiesFromSaveData(ULoadScreenS
 
 void UAuraAbilitySystemComponent::AddCharacterAbilities(const TArray<TSubclassOf<UGameplayAbility>>& StartupAbilities)
 {
+	UE_LOG(LogAura, Warning, TEXT("AddCharacterAbilities"))
 	for (const TSubclassOf<UGameplayAbility> AbilityClass : StartupAbilities)
 	{
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);
@@ -258,6 +259,19 @@ FGameplayAbilitySpec* UAuraAbilitySystemComponent::GetSpecFromAbilityTag(const F
 			{
 				return &AbilitySpec;
 			}
+		}
+	}
+	return nullptr;
+}
+
+FGameplayAbilitySpec* UAuraAbilitySystemComponent::GetSpecFromInputTag(const FGameplayTag& InputTag)
+{
+	FScopedAbilityListLock ActiveScopeLoc(*this);
+	for (FGameplayAbilitySpec& AbilitySpec : GetActivatableAbilities())
+	{
+		if (AbilitySpec.DynamicAbilityTags.HasTagExact(InputTag))
+		{
+			return &AbilitySpec;
 		}
 	}
 	return nullptr;

@@ -28,6 +28,7 @@ void UAuraWidgetController::BindCallbacksToDependencies()
 
 void UAuraWidgetController::BroadcastAbilityInfo()
 {
+	//UE_LOG(LogTemp, Warning, TEXT("passs"))
 	if (!GetAuraASC()->bStartupAbilitiesGiven) return;
 
 	FForEachAbility BroadcastDelegate;

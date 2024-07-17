@@ -15,6 +15,7 @@
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/AbilityInfo.h"
 #include "AbilitySystem/Debuff/DebuffNiagaraComponent.h"
+#include "Aura/AuraLogChannels.h"
 #include "Camera/CameraComponent.h"
 #include "Game/AuraGameModeBase.h"
 #include "Game/LoadScreenSaveGame.h"
@@ -69,8 +70,13 @@ void AAuraCharacter::LoadProgress()
 	if (AuraGameMode)
 	{
 		ULoadScreenSaveGame* SaveData = AuraGameMode->RetrieveInGameSaveData();
-		if (SaveData == nullptr) return;
-
+		if (SaveData == nullptr)
+		{	
+			// for debugging purposes
+			InitializeDefaultAttributes();
+			AddCharacterAbilities();
+			return;
+		}
 		if (SaveData->bFirstTimeLoadIn)
 		{
 			InitializeDefaultAttributes();

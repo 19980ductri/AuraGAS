@@ -62,6 +62,12 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults", meta = (DefaultToSelf = "WorldContextObject"))
 	static ULootTiers* GetLootTiers(const UObject* WorldContextObject);
+
+	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults", meta = (DefaultToSelf = "WorldContextObject"))
+	static FVector FindTargetAttackableLocation(const UObject* WorldContextObject, const FVector& TargetLocation, const FVector& SourceLocation, float AttackRange);
+
+	UFUNCTION(BlueprintCallable, Category="AuraAbilitySystemLibrary|CharacterClassDefaults", meta = (DefaultToSelf = "WorldContextObject"))
+	static bool IsInCastRange(const UObject* WorldContextObject, const FVector& TargetLocation, const FVector& SourceLocation, float CastRange);	
 	
 	/*
 	 * Effect Context Getters
@@ -173,6 +179,8 @@ public:
 
 	static int32 GetXPRewardForClassAndLevel(const UObject* WorldContextObject, ECharacterClass CharacterClass, int32 CharacterLevel);
 
+	
+	
 	/*
 	 * Damage Effect Params
 	 */

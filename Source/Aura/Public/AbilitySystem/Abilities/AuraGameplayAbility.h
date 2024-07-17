@@ -14,6 +14,9 @@ class AURA_API UAuraGameplayAbility : public UGameplayAbility
 	GENERATED_BODY()
 public:
 
+	UPROPERTY(EditDefaultsOnly)
+	float CastRange = 0;
+	
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	FGameplayTag StartupInputTag;
 
@@ -21,6 +24,7 @@ public:
 	virtual FString GetNextLevelDescription(int32 Level);
 	static FString GetLockedDescription(int32 Level);
 
+	
 protected:
 
 	float GetManaCost(float InLevel = 1.f) const;

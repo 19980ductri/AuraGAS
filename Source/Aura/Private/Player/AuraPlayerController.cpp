@@ -9,8 +9,11 @@
 #include "NavigationSystem.h"
 #include "NiagaraFunctionLibrary.h"
 #include "AbilitySystem/AuraAbilitySystemComponent.h"
+#include "AbilitySystem/AuraAbilitySystemLibrary.h"
+#include "AbilitySystem/Abilities/AuraGameplayAbility.h"
 #include "Actor/MagicCircle.h"
 #include "Aura/Aura.h"
+#include "Aura/AuraLogChannels.h"
 #include "Components/DecalComponent.h"
 #include "Components/SplineComponent.h"
 #include "Input/AuraInputComponent.h"
@@ -67,7 +70,8 @@ void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, 
 
 void AAuraPlayerController::AutoRun()
 {
-	if (!bAutoRunning) return;
+	if (bAutoRunning == false) return;
+	
 	if (APawn* ControlledPawn = GetPawn())
 	{
 		const FVector LocationOnSpline = Spline->FindLocationClosestToWorldLocation(ControlledPawn->GetActorLocation(), ESplineCoordinateSpace::World);
@@ -177,6 +181,7 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 	if (TargetingStatus != ETargetingStatus::TargetingEnemy && !bShiftKeyDown)
 	{
 		const APawn* ControlledPawn = GetPawn();
+		
 		if (FollowTime <= ShortPressThreshold && ControlledPawn)
 		{
 			if (IsValid(ThisActor) && ThisActor->Implements<UHighlightInterface>())
@@ -187,7 +192,10 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 			{
 				UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ClickNiagaraSystem, CachedDestination);
 			}
-			if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this, ControlledPawn->GetActorLocation(), CachedDestination))
+			
+			if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this,
+				ControlledPawn->GetActorLocation(),
+				CachedDestination))
 			{
 				Spline->ClearSplinePoints();
 				for (const FVector& PointLoc : NavPath->PathPoints)
@@ -220,13 +228,64 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 
 	if (TargetingStatus == ETargetingStatus::TargetingEnemy || bShiftKeyDown)
 	{
-		if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
+		if (FGameplayAbilitySpec* Spec = GetASC()->GetSpecWithSlot(InputTag))
+		{
+			UAuraGameplayAbility* Ability = Cast<UAuraGameplayAbility>(Spec->Ability);
+			if (IsValid(Ability) && IsValid(ThisActor))
+			{
+				if (bool bInRange = UAuraAbilitySystemLibrary::IsInCastRange(this, ThisActor->GetActorLocation(),
+					GetPawn()->GetActorLocation(), Ability->CastRange))
+				{
+					if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
+				}
+				else
+				{
+					//TODO: implement a function that make character go to cast ran
+					FVector AttackableLocation = UAuraAbilitySystemLibrary::FindTargetAttackableLocation(this, ThisActor->GetActorLocation(),
+						GetPawn()->GetActorLocation() ,Ability->CastRange);
+					if (APawn* ControlledPawn = GetPawn())
+					{
+						// Calculate path to the attackable location
+						UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this,
+							ControlledPawn->GetActorLocation(),
+							AttackableLocation);
+        
+						if (NavPath && NavPath->PathPoints.Num() > 0)
+						{
+							// Clear existing spline points and add new ones
+							Spline->ClearSplinePoints();
+							for (const FVector& PointLoc : NavPath->PathPoints)
+							{
+								Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
+							}
+            
+							// Set the destination and start auto-running
+							CachedDestination = AttackableLocation;
+							bAutoRunning = true;
+            
+							// You might want to set a flag or state to indicate that the character is moving to cast
+							// For example:
+							// bMovingToCast = true;
+            
+							// Optionally, you can add a visual indicator for the player
+							if (ClickNiagaraSystem)
+							{
+								UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ClickNiagaraSystem, AttackableLocation);
+							}
+						}
+					}
+					
+				}
+			}
+		}
 	}
 	else
 	{
 		FollowTime += GetWorld()->GetDeltaSeconds();
-		if (CursorHit.bBlockingHit) CachedDestination = CursorHit.ImpactPoint;
-
+		if (CursorHit.bBlockingHit)
+		{
+			CachedDestination = CursorHit.ImpactPoint;
+		}
 		if (APawn* ControlledPawn = GetPawn())
 		{
 			const FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();

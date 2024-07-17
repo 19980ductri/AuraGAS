@@ -153,6 +153,7 @@ int32 UAuraAbilitySystemLibrary::GetXPRewardForClassAndLevel(const UObject* Worl
 	return static_cast<int32>(XPReward);
 }
 
+
 void UAuraAbilitySystemLibrary::SetIsRadialDamageEffectParam(FDamageEffectParams& DamageEffectParams, bool bIsRadial, float InnerRadius, float OuterRadius, FVector Origin)
 {
 	DamageEffectParams.bIsRadialDamage = bIsRadial;
@@ -212,6 +213,23 @@ ULootTiers* UAuraAbilitySystemLibrary::GetLootTiers(const UObject* WorldContextO
 	const AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject));
 	if (AuraGameMode == nullptr) return nullptr;
 	return AuraGameMode->LootTiers;
+}
+
+FVector UAuraAbilitySystemLibrary::FindTargetAttackableLocation(const UObject* WorldContextObject,
+	const FVector& TargetLocation, const FVector& SourceLocation, float AttackRange)
+{
+	FVector Direction = TargetLocation - SourceLocation;
+	Direction.Normalize();
+	const FVector AttackableLcation = TargetLocation - Direction * AttackRange;
+	
+	return AttackableLcation;
+}
+
+bool UAuraAbilitySystemLibrary::IsInCastRange(const UObject* WorldContextObject, const FVector& TargetLocation,
+	const FVector& SourceLocation, float CastRange)
+{
+	float Distance = FVector::Dist(TargetLocation, SourceLocation);
+	return Distance <= CastRange;
 }
 
 bool UAuraAbilitySystemLibrary::IsBlockedHit(const FGameplayEffectContextHandle& EffectContextHandle)

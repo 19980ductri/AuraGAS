@@ -57,6 +57,7 @@ public:
 	void MulticastActivatePassiveEffect(const FGameplayTag& AbilityTag, bool bActivate);
 
 	FGameplayAbilitySpec* GetSpecFromAbilityTag(const FGameplayTag& AbilityTag);
+	FGameplayAbilitySpec* GetSpecFromInputTag(const FGameplayTag& InputTag);
 
 	void UpgradeAttribute(const FGameplayTag& AttributeTag);
 
