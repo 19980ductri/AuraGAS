@@ -52,6 +52,7 @@ void AAuraPlayerController::HideMagicCircle()
 {
 	if (IsValid(MagicCircle))
 	{
+		UE_LOG(LogAura, Warning, TEXT("Destroying Magic Circle"));
 		MagicCircle->Destroy();
 	}
 }
@@ -78,12 +79,20 @@ void AAuraPlayerController::AutoRun()
 		const FVector Direction = Spline->FindDirectionClosestToWorldLocation(LocationOnSpline, ESplineCoordinateSpace::World);
 		ControlledPawn->AddMovementInput(Direction);
 
-		const float DistanceToDestination = (LocationOnSpline - CachedDestination).Length();
+		//const float DistanceToDestination = (CachedDestination - LocationOnSpline).Length();
+		//
+		DrawDebugSphere(GetWorld(), LocationOnSpline, 5, 10.0f, FColor::Red, false, 2.0f, 0, 5.0f);
+		
+		float DistanceToDestination = FVector::Dist(LocationOnSpline, CachedDestination);
+		UE_LOG(LogAura, Warning, TEXT("Distance to destination: %f"), DistanceToDestination);
 		if (DistanceToDestination <= AutoRunAcceptanceRadius)
 		{
 			bAutoRunning = false;
+			
 		}
 	}
+	
+	
 }
 
 void AAuraPlayerController::UpdateMagicCircleLocation()
@@ -166,6 +175,10 @@ void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
 
 void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 {
+	if (GetASC() == nullptr)
+	{
+		return;
+	}
 	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputReleased))
 	{
 		return;
@@ -177,11 +190,10 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 	}
 
 	if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
-	
+	const APawn* ControlledPawn = GetPawn();
 	if (TargetingStatus != ETargetingStatus::TargetingEnemy && !bShiftKeyDown)
 	{
-		const APawn* ControlledPawn = GetPawn();
-		
+		UE_LOG(LogAura,Warning, TEXT("Not Targeting"))
 		if (FollowTime <= ShortPressThreshold && ControlledPawn)
 		{
 			if (IsValid(ThisActor) && ThisActor->Implements<UHighlightInterface>())
@@ -193,29 +205,83 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 				UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ClickNiagaraSystem, CachedDestination);
 			}
 			
-			if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this,
-				ControlledPawn->GetActorLocation(),
-				CachedDestination))
+			if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this,ControlledPawn->GetActorLocation(),CachedDestination))
 			{
-				Spline->ClearSplinePoints();
-				for (const FVector& PointLoc : NavPath->PathPoints)
+				if (NavPath->PathPoints.Num() > 1)
 				{
-					Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
-				}
-				if (NavPath->PathPoints.Num() > 0)
-				{
+					Spline->ClearSplinePoints();
+					for (const FVector& PointLoc : NavPath->PathPoints)
+					{
+						Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
+						//DrawDebugSphere(GetWorld(), Spline, 30.f, 2, FColor::Blue, false, 20.f);
+					}
 					CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
+					DrawDebugSphere(GetWorld(), CachedDestination, 30.f, 2, FColor::Cyan, false, 20.f);
 					bAutoRunning = true;
+					
 				}
 			}
 		}
 		FollowTime = 0.f;
 		TargetingStatus = ETargetingStatus::NotTargeting;
 	}
+	else if (TargetingStatus == ETargetingStatus::TargetingEnemy)
+	{
+		if (FollowTime <= ShortPressThreshold)
+		{
+			if (FGameplayAbilitySpec* Spec = GetASC()->GetSpecWithSlot(InputTag))
+			{
+				UAuraGameplayAbility* Ability = Cast<UAuraGameplayAbility>(Spec->Ability);
+				if (IsValid(Ability) && IsValid(ThisActor))
+				{
+					if (UAuraAbilitySystemLibrary::IsInCastRange(this, ThisActor->GetActorLocation(),
+					ControlledPawn->GetActorLocation(), Ability->CastRange))
+					{
+						UE_LOG(LogAura, Warning, TEXT("Targeting enemy in cast range"));
+						GetASC()->AbilityInputTagReleased(InputTag);
+					}
+					else
+					{
+						UE_LOG(LogAura, Warning, TEXT("Targeting Enemy but not in range yet"))
+						FVector AttackableLocation = UAuraAbilitySystemLibrary::FindTargetAttackableLocation(this, ThisActor->GetActorLocation(),
+						GetPawn()->GetActorLocation() ,Ability->CastRange);
+						
+						if (ControlledPawn)
+						{
+							UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this,
+								ControlledPawn->GetActorLocation(),
+								AttackableLocation);
+							if (NavPath && NavPath->PathPoints.Num() > 0)
+							{
+								Spline->ClearSplinePoints();
+								for (const FVector& PointLoc : NavPath->PathPoints)
+								{
+									DrawDebugSphere(GetWorld(), PointLoc, 30.f, 2,FColor::Blue, false, 20.f);
+									Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
+								}
+								
+								CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
+								
+								DrawDebugSphere(GetWorld(), CachedDestination, 10.f, 2, FColor::Green, false, 20.f);
+								
+								DrawDebugSphere(GetWorld(), AttackableLocation, 10, 10.0f, FColor::Red, false, 2.0f, 0, 5.0f);
+								bAutoRunning = true;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
 }
-
 void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 {
+	
+	if (GetASC() == nullptr)
+	{
+		return;
+	}
+	
 	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputHeld))
 	{
 		return;
@@ -225,7 +291,7 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 		if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
 		return;
 	}
-
+	
 	if (TargetingStatus == ETargetingStatus::TargetingEnemy || bShiftKeyDown)
 	{
 		if (FGameplayAbilitySpec* Spec = GetASC()->GetSpecWithSlot(InputTag))
@@ -236,7 +302,7 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 				if (bool bInRange = UAuraAbilitySystemLibrary::IsInCastRange(this, ThisActor->GetActorLocation(),
 					GetPawn()->GetActorLocation(), Ability->CastRange))
 				{
-					if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
+					GetASC()->AbilityInputTagHeld(InputTag);
 				}
 				else
 				{
@@ -262,16 +328,6 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 							// Set the destination and start auto-running
 							CachedDestination = AttackableLocation;
 							bAutoRunning = true;
-            
-							// You might want to set a flag or state to indicate that the character is moving to cast
-							// For example:
-							// bMovingToCast = true;
-            
-							// Optionally, you can add a visual indicator for the player
-							if (ClickNiagaraSystem)
-							{
-								UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ClickNiagaraSystem, AttackableLocation);
-							}
 						}
 					}
 					

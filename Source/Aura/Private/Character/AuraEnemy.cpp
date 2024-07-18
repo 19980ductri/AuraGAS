@@ -11,6 +11,7 @@
 #include "UI/Widget/AuraUserWidget.h"
 #include "AuraGameplayTags.h"
 #include "AI/AuraAIController.h"
+#include "Aura/AuraLogChannels.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
@@ -68,6 +69,7 @@ void AAuraEnemy::UnHighlightActor_Implementation()
 void AAuraEnemy::SetMoveToLocation_Implementation(FVector& OutDestination)
 {
 	// Do not change OutDestination
+	UE_LOG(LogAura, Warning, TEXT("AAuraEnemy::SetMoveToLocation_Implementation() is not implemented"));
 }
 
 int32 AAuraEnemy::GetPlayerLevel_Implementation()

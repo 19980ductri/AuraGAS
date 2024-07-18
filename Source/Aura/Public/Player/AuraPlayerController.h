@@ -90,8 +90,7 @@ private:
 	float ShortPressThreshold = 0.5f;
 	bool bAutoRunning = false;
 	ETargetingStatus TargetingStatus = ETargetingStatus::NotTargeting;
-
-	UPROPERTY(EditDefaultsOnly)
+	
 	float AutoRunAcceptanceRadius = 50.f;
 
 	UPROPERTY(VisibleAnywhere)
