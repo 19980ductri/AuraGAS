@@ -100,27 +100,6 @@ void AAuraPlayerController::UpdateMagicCircleLocation()
 	}
 }
 
-/*
-bool AAuraPlayerController::ValidateInputAndASC(FGameplayTag InputTag)
-{
-	if (GetASC() == nullptr)
-	{
-		return false;
-	}
-	if (GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
-	{
-		return false;
-	}
-	if (InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB) == false)
-	{
-		GetASC()->AbilityInputTagReleased(InputTag);
-		return false;
-	}
-	GetASC()->AbilityInputTagReleased(InputTag);
-	return true;
-}*/
-
-
 void AAuraPlayerController::CreateNavigationPath(const FVector& PathStart, const FVector& PathEnd)
 {
 	if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this,PathStart,PathEnd))
@@ -218,11 +197,13 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 	{
 		return;
 	}
-	/*if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
+	
+	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
+		bAutoRunning = false;
 		return;
-	}*/
+	}
 
 	if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
 	const APawn* ControlledPawn = GetPawn();
@@ -244,7 +225,7 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 		FollowTime = 0.f;
 		TargetingStatus = ETargetingStatus::NotTargeting;
 	}
-	else if (TargetingStatus == ETargetingStatus::TargetingEnemy)
+	/*else if (TargetingStatus == ETargetingStatus::TargetingEnemy)
 	{
 		if (FollowTime <= ShortPressThreshold)
 		{
@@ -268,7 +249,7 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 				}
 			}
 		}
-	}
+	}*/
 }
 void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 {
@@ -280,11 +261,12 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 	{
 		return;
 	}
-	/*if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
+	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
+		bAutoRunning = false;
 		return;
-	}*/
+	}
 	APawn* ControlledPawn = GetPawn();
 	if (IsValid(ControlledPawn) == false) return;
 	
@@ -294,20 +276,6 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 		if (GetASC()->GetSpecWithSlot(InputTag) == nullptr) return;
 		const UAuraGameplayAbility* Ability = Cast<UAuraGameplayAbility>(GetASC()->GetSpecWithSlot(InputTag)->Ability);
 		if (IsValid(Ability) || IsValid(ThisActor)) return;
-		if (bool bInRange = UAuraAbilitySystemLibrary::IsInCastRange(this, ThisActor->GetActorLocation(),
-		                                                             GetPawn()->GetActorLocation(),
-		                                                             Ability->CastRange))
-		{
-			GetASC()->AbilityInputTagHeld(InputTag);
-		}
-		else
-		{
-			const FVector AttackableLocation = UAuraAbilitySystemLibrary::FindTargetAttackableLocation(
-				this, ThisActor->GetActorLocation(),
-				GetPawn()->GetActorLocation(), Ability->CastRange);
-
-			CreateNavigationPath(ControlledPawn->GetActorLocation(), AttackableLocation);
-		}
 	}
 	else
 	{
@@ -343,7 +311,7 @@ void AAuraPlayerController::BeginPlay()
 	{
 		Subsystem->AddMappingContext(AuraContext, 0);
 	}
-
+	
 	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Default;
 
