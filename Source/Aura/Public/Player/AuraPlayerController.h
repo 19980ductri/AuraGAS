@@ -111,4 +111,11 @@ private:
 	TObjectPtr<AMagicCircle> MagicCircle;
 
 	void UpdateMagicCircleLocation();
+
+
+private:
+
+	//bool ValidateInputAndASC(FGameplayTag InputTag);
+	void CreateNavigationPath(const FVector& PathStart, const FVector& PathEnd);
+	
 };

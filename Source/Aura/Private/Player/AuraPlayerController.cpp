@@ -88,11 +88,8 @@ void AAuraPlayerController::AutoRun()
 		if (DistanceToDestination <= AutoRunAcceptanceRadius)
 		{
 			bAutoRunning = false;
-			
 		}
 	}
-	
-	
 }
 
 void AAuraPlayerController::UpdateMagicCircleLocation()
@@ -100,6 +97,44 @@ void AAuraPlayerController::UpdateMagicCircleLocation()
 	if (IsValid(MagicCircle))
 	{
 		MagicCircle->SetActorLocation(CursorHit.ImpactPoint);
+	}
+}
+
+/*
+bool AAuraPlayerController::ValidateInputAndASC(FGameplayTag InputTag)
+{
+	if (GetASC() == nullptr)
+	{
+		return false;
+	}
+	if (GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
+	{
+		return false;
+	}
+	if (InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB) == false)
+	{
+		GetASC()->AbilityInputTagReleased(InputTag);
+		return false;
+	}
+	GetASC()->AbilityInputTagReleased(InputTag);
+	return true;
+}*/
+
+
+void AAuraPlayerController::CreateNavigationPath(const FVector& PathStart, const FVector& PathEnd)
+{
+	if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this,PathStart,PathEnd))
+	{
+		if (NavPath->PathPoints.Num() > 1)
+		{
+			Spline->ClearSplinePoints();
+			for (const FVector& PointLoc : NavPath->PathPoints)
+			{
+				Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
+			}
+			CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
+			bAutoRunning = true;
+		}
 	}
 }
 
@@ -183,11 +218,11 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 	{
 		return;
 	}
-	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
+	/*if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
 		return;
-	}
+	}*/
 
 	if (GetASC()) GetASC()->AbilityInputTagReleased(InputTag);
 	const APawn* ControlledPawn = GetPawn();
@@ -204,23 +239,7 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 			{
 				UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ClickNiagaraSystem, CachedDestination);
 			}
-			
-			if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this,ControlledPawn->GetActorLocation(),CachedDestination))
-			{
-				if (NavPath->PathPoints.Num() > 1)
-				{
-					Spline->ClearSplinePoints();
-					for (const FVector& PointLoc : NavPath->PathPoints)
-					{
-						Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
-						//DrawDebugSphere(GetWorld(), Spline, 30.f, 2, FColor::Blue, false, 20.f);
-					}
-					CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
-					DrawDebugSphere(GetWorld(), CachedDestination, 30.f, 2, FColor::Cyan, false, 20.f);
-					bAutoRunning = true;
-					
-				}
-			}
+			CreateNavigationPath(ControlledPawn->GetActorLocation(), CachedDestination);
 		}
 		FollowTime = 0.f;
 		TargetingStatus = ETargetingStatus::NotTargeting;
@@ -229,45 +248,22 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 	{
 		if (FollowTime <= ShortPressThreshold)
 		{
-			if (FGameplayAbilitySpec* Spec = GetASC()->GetSpecWithSlot(InputTag))
+			if(GetASC()->GetSpecWithSlot(InputTag))
 			{
-				UAuraGameplayAbility* Ability = Cast<UAuraGameplayAbility>(Spec->Ability);
-				if (IsValid(Ability) && IsValid(ThisActor))
-				{
-					if (UAuraAbilitySystemLibrary::IsInCastRange(this, ThisActor->GetActorLocation(),
+				UAuraGameplayAbility* Ability = Cast<UAuraGameplayAbility>(GetASC()->GetSpecWithSlot(InputTag)->Ability);
+				if (IsValid(Ability) || IsValid(ThisActor)) return;
+				if (UAuraAbilitySystemLibrary::IsInCastRange(this, ThisActor->GetActorLocation(),
 					ControlledPawn->GetActorLocation(), Ability->CastRange))
+				{
+					GetASC()->AbilityInputTagReleased(InputTag);
+				}
+				else
+				{
+					const FVector AttackableLocation = UAuraAbilitySystemLibrary::FindTargetAttackableLocation(this,
+						ThisActor->GetActorLocation(),GetPawn()->GetActorLocation() ,Ability->CastRange);
+					if (ControlledPawn)
 					{
-						UE_LOG(LogAura, Warning, TEXT("Targeting enemy in cast range"));
-						GetASC()->AbilityInputTagReleased(InputTag);
-					}
-					else
-					{
-						UE_LOG(LogAura, Warning, TEXT("Targeting Enemy but not in range yet"))
-						FVector AttackableLocation = UAuraAbilitySystemLibrary::FindTargetAttackableLocation(this, ThisActor->GetActorLocation(),
-						GetPawn()->GetActorLocation() ,Ability->CastRange);
-						
-						if (ControlledPawn)
-						{
-							UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this,
-								ControlledPawn->GetActorLocation(),
-								AttackableLocation);
-							if (NavPath && NavPath->PathPoints.Num() > 0)
-							{
-								Spline->ClearSplinePoints();
-								for (const FVector& PointLoc : NavPath->PathPoints)
-								{
-									DrawDebugSphere(GetWorld(), PointLoc, 30.f, 2,FColor::Blue, false, 20.f);
-									Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
-								}
-								
-								CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
-								
-								DrawDebugSphere(GetWorld(), CachedDestination, 10.f, 2, FColor::Green, false, 20.f);
-								
-								DrawDebugSphere(GetWorld(), AttackableLocation, 10, 10.0f, FColor::Red, false, 2.0f, 0, 5.0f);
-								bAutoRunning = true;
-							}
-						}
+						CreateNavigationPath(ControlledPawn->GetActorLocation(), AttackableLocation);
 					}
 				}
 			}
@@ -276,63 +272,41 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 }
 void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 {
-	
 	if (GetASC() == nullptr)
 	{
 		return;
 	}
-	
 	if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputHeld))
 	{
 		return;
 	}
-	if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
+	/*if (!InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB))
 	{
 		if (GetASC()) GetASC()->AbilityInputTagHeld(InputTag);
 		return;
-	}
+	}*/
+	APawn* ControlledPawn = GetPawn();
+	if (IsValid(ControlledPawn) == false) return;
 	
 	if (TargetingStatus == ETargetingStatus::TargetingEnemy || bShiftKeyDown)
 	{
-		if (FGameplayAbilitySpec* Spec = GetASC()->GetSpecWithSlot(InputTag))
+		/*const FGameplayAbilitySpec* Spec =*/ ;
+		if (GetASC()->GetSpecWithSlot(InputTag) == nullptr) return;
+		const UAuraGameplayAbility* Ability = Cast<UAuraGameplayAbility>(GetASC()->GetSpecWithSlot(InputTag)->Ability);
+		if (IsValid(Ability) || IsValid(ThisActor)) return;
+		if (bool bInRange = UAuraAbilitySystemLibrary::IsInCastRange(this, ThisActor->GetActorLocation(),
+		                                                             GetPawn()->GetActorLocation(),
+		                                                             Ability->CastRange))
 		{
-			UAuraGameplayAbility* Ability = Cast<UAuraGameplayAbility>(Spec->Ability);
-			if (IsValid(Ability) && IsValid(ThisActor))
-			{
-				if (bool bInRange = UAuraAbilitySystemLibrary::IsInCastRange(this, ThisActor->GetActorLocation(),
-					GetPawn()->GetActorLocation(), Ability->CastRange))
-				{
-					GetASC()->AbilityInputTagHeld(InputTag);
-				}
-				else
-				{
-					//TODO: implement a function that make character go to cast ran
-					FVector AttackableLocation = UAuraAbilitySystemLibrary::FindTargetAttackableLocation(this, ThisActor->GetActorLocation(),
-						GetPawn()->GetActorLocation() ,Ability->CastRange);
-					if (APawn* ControlledPawn = GetPawn())
-					{
-						// Calculate path to the attackable location
-						UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this,
-							ControlledPawn->GetActorLocation(),
-							AttackableLocation);
-        
-						if (NavPath && NavPath->PathPoints.Num() > 0)
-						{
-							// Clear existing spline points and add new ones
-							Spline->ClearSplinePoints();
-							for (const FVector& PointLoc : NavPath->PathPoints)
-							{
-								Spline->AddSplinePoint(PointLoc, ESplineCoordinateSpace::World);
-							}
-            
-							// Set the destination and start auto-running
-							CachedDestination = AttackableLocation;
-							bAutoRunning = true;
-						}
-					}
-					
-				}
-			}
+			GetASC()->AbilityInputTagHeld(InputTag);
+		}
+		else
+		{
+			const FVector AttackableLocation = UAuraAbilitySystemLibrary::FindTargetAttackableLocation(
+				this, ThisActor->GetActorLocation(),
+				GetPawn()->GetActorLocation(), Ability->CastRange);
+
+			CreateNavigationPath(ControlledPawn->GetActorLocation(), AttackableLocation);
 		}
 	}
 	else
@@ -342,9 +316,9 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 		{
 			CachedDestination = CursorHit.ImpactPoint;
 		}
-		if (APawn* ControlledPawn = GetPawn())
+		const FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
+		if (InputTag == FAuraGameplayTags::Get().InputTag_LMB)
 		{
-			const FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
 			ControlledPawn->AddMovementInput(WorldDirection);
 		}
 	}
