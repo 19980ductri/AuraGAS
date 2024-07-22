@@ -52,7 +52,6 @@ void AAuraPlayerController::HideMagicCircle()
 {
 	if (IsValid(MagicCircle))
 	{
-		UE_LOG(LogAura, Warning, TEXT("Destroying Magic Circle"));
 		MagicCircle->Destroy();
 	}
 }
@@ -81,10 +80,8 @@ void AAuraPlayerController::AutoRun()
 
 		//const float DistanceToDestination = (CachedDestination - LocationOnSpline).Length();
 		//
-		DrawDebugSphere(GetWorld(), LocationOnSpline, 5, 10.0f, FColor::Red, false, 2.0f, 0, 5.0f);
-		
 		float DistanceToDestination = FVector::Dist(LocationOnSpline, CachedDestination);
-		UE_LOG(LogAura, Warning, TEXT("Distance to destination: %f"), DistanceToDestination);
+		//UE_LOG(LogAura, Warning, TEXT("Distance to destination: %f"), DistanceToDestination);
 		if (DistanceToDestination <= AutoRunAcceptanceRadius)
 		{
 			bAutoRunning = false;
@@ -209,7 +206,7 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 	const APawn* ControlledPawn = GetPawn();
 	if (TargetingStatus != ETargetingStatus::TargetingEnemy && !bShiftKeyDown)
 	{
-		UE_LOG(LogAura,Warning, TEXT("Not Targeting"))
+		//UE_LOG(LogAura,Warning, TEXT("Not Targeting"))
 		if (FollowTime <= ShortPressThreshold && ControlledPawn)
 		{
 			if (IsValid(ThisActor) && ThisActor->Implements<UHighlightInterface>())
@@ -225,31 +222,6 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 		FollowTime = 0.f;
 		TargetingStatus = ETargetingStatus::NotTargeting;
 	}
-	/*else if (TargetingStatus == ETargetingStatus::TargetingEnemy)
-	{
-		if (FollowTime <= ShortPressThreshold)
-		{
-			if(GetASC()->GetSpecWithSlot(InputTag))
-			{
-				UAuraGameplayAbility* Ability = Cast<UAuraGameplayAbility>(GetASC()->GetSpecWithSlot(InputTag)->Ability);
-				if (IsValid(Ability) || IsValid(ThisActor)) return;
-				if (UAuraAbilitySystemLibrary::IsInCastRange(this, ThisActor->GetActorLocation(),
-					ControlledPawn->GetActorLocation(), Ability->CastRange))
-				{
-					GetASC()->AbilityInputTagReleased(InputTag);
-				}
-				else
-				{
-					const FVector AttackableLocation = UAuraAbilitySystemLibrary::FindTargetAttackableLocation(this,
-						ThisActor->GetActorLocation(),GetPawn()->GetActorLocation() ,Ability->CastRange);
-					if (ControlledPawn)
-					{
-						CreateNavigationPath(ControlledPawn->GetActorLocation(), AttackableLocation);
-					}
-				}
-			}
-		}
-	}*/
 }
 void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 {
@@ -270,26 +242,18 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
 	APawn* ControlledPawn = GetPawn();
 	if (IsValid(ControlledPawn) == false) return;
 	
-	if (TargetingStatus == ETargetingStatus::TargetingEnemy || bShiftKeyDown)
+	FollowTime += GetWorld()->GetDeltaSeconds();
+	if (CursorHit.bBlockingHit)
 	{
-		/*const FGameplayAbilitySpec* Spec =*/ ;
-		if (GetASC()->GetSpecWithSlot(InputTag) == nullptr) return;
-		const UAuraGameplayAbility* Ability = Cast<UAuraGameplayAbility>(GetASC()->GetSpecWithSlot(InputTag)->Ability);
-		if (IsValid(Ability) || IsValid(ThisActor)) return;
+		CachedDestination = CursorHit.ImpactPoint;
 	}
-	else
+	const FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
+	if (InputTag == FAuraGameplayTags::Get().InputTag_LMB)
 	{
-		FollowTime += GetWorld()->GetDeltaSeconds();
-		if (CursorHit.bBlockingHit)
-		{
-			CachedDestination = CursorHit.ImpactPoint;
-		}
-		const FVector WorldDirection = (CachedDestination - ControlledPawn->GetActorLocation()).GetSafeNormal();
-		if (InputTag == FAuraGameplayTags::Get().InputTag_LMB)
-		{
-			ControlledPawn->AddMovementInput(WorldDirection);
-		}
+		ControlledPawn->AddMovementInput(WorldDirection);
 	}
+	
+	
 }
 
 UAuraAbilitySystemComponent* AAuraPlayerController::GetASC()

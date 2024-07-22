@@ -14,7 +14,7 @@ class AURA_API UAuraGameplayAbility : public UGameplayAbility
 	GENERATED_BODY()
 public:
 
-	UPROPERTY(EditDefaultsOnly)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
 	float CastRange = 0;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Input")

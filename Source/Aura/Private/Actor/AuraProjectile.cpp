@@ -14,7 +14,7 @@
 
 AAuraProjectile::AAuraProjectile()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 
 	Sphere = CreateDefaultSubobject<USphereComponent>("Sphere");
@@ -25,12 +25,24 @@ AAuraProjectile::AAuraProjectile()
 	Sphere->SetCollisionResponseToChannel(ECC_WorldDynamic, ECR_Overlap);
 	Sphere->SetCollisionResponseToChannel(ECC_WorldStatic, ECR_Overlap);
 	Sphere->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
-
+	
 	ProjectileMovement = CreateDefaultSubobject<UProjectileMovementComponent>("ProjectileMovement");
 	ProjectileMovement->InitialSpeed = 550.f;
 	ProjectileMovement->MaxSpeed = 550.f;
 	ProjectileMovement->ProjectileGravityScale = 0.f;
 }
+
+void AAuraProjectile::InitProjectileRange(const FVector& StartLoc, const float MaxDistance)
+{
+	ProjectileStartLocation = StartLoc;
+	MaxTravelDistance = MaxDistance;
+}
+
+bool AAuraProjectile::ReachedMaxDistance(float DeltaSecond) const
+{
+	return (GetActorLocation() - ProjectileStartLocation).Size() >= MaxTravelDistance;
+}
+
 
 void AAuraProjectile::BeginPlay()
 {
@@ -42,10 +54,19 @@ void AAuraProjectile::BeginPlay()
 	LoopingSoundComponent = UGameplayStatics::SpawnSoundAttached(LoopingSound, GetRootComponent());
 }
 
+void AAuraProjectile::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+	if (ReachedMaxDistance(DeltaTime))
+	{
+		ProjectileExplode();
+	}
+}
+
 void AAuraProjectile::OnHit()
 {
 	UGameplayStatics::PlaySoundAtLocation(this, ImpactSound, GetActorLocation(), FRotator::ZeroRotator);
-	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ImpactEffect, GetActorLocation());
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ExplosionEffect, GetActorLocation());
 	if (LoopingSoundComponent)
 	{
 		LoopingSoundComponent->Stop();
@@ -74,7 +95,7 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 	
 	if (HasAuthority())
 	{
-		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
+		/*if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
 		{
 			const FVector DeathImpulse = GetActorForwardVector() * DamageEffectParams.DeathImpulseMagnitude;
 			DamageEffectParams.DeathImpulse = DeathImpulse;
@@ -83,16 +104,14 @@ void AAuraProjectile::OnSphereOverlap(UPrimitiveComponent* OverlappedComponent, 
 			{
 				FRotator Rotation = GetActorRotation();
 				Rotation.Pitch = 45.f;
-				
 				const FVector KnockbackDirection = Rotation.Vector();
 				const FVector KnockbackForce = KnockbackDirection * DamageEffectParams.KnockbackForceMagnitude;
 				DamageEffectParams.KnockbackForce = KnockbackForce;
 			}
-			
 			DamageEffectParams.TargetAbilitySystemComponent = TargetASC;
 			UAuraAbilitySystemLibrary::ApplyDamageEffect(DamageEffectParams);
-		}
-		
+		}*/
+		ProjectileExplode();
 		Destroy();
 	}
 	else bHit = true;
@@ -107,3 +126,32 @@ bool AAuraProjectile::IsValidOverlap(AActor* OtherActor)
 
 	return true;
 }
+
+void AAuraProjectile::ProjectileExplode()
+{
+	if (HasAuthority() == false)
+	{
+		return;
+	}
+	//TODO: Explosion Effect
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ExplosionEffect, GetActorLocation());
+	DamageEffectParams.RadialDamageOrigin = GetActorLocation();
+	
+	//TODO: Damage AOE Effect
+	TArray<AActor*> OutActorsToDamage;
+	TArray<AActor*> ActorsToIgnore {GetOwner()};
+	UAuraAbilitySystemLibrary::GetLivePlayersWithinRadius(this, OutActorsToDamage, ActorsToIgnore,
+		DamageEffectParams.RadialDamageOuterRadius, DamageEffectParams.RadialDamageOrigin);
+
+	for (AActor* Actor : OutActorsToDamage)
+	{
+		UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(Actor);
+		UAuraAbilitySystemLibrary::SetTargetEffectParamsASC(DamageEffectParams, TargetASC);
+		UAuraAbilitySystemLibrary::ApplyDamageEffect(DamageEffectParams);
+	}
+	
+	
+	Destroy();
+	//TODO: Destroy Projectile
+}
+
