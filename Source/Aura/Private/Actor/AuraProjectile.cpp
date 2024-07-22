@@ -135,6 +135,7 @@ void AAuraProjectile::ProjectileExplode()
 	}
 	//TODO: Explosion Effect
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ExplosionEffect, GetActorLocation());
+	
 	DamageEffectParams.RadialDamageOrigin = GetActorLocation();
 	
 	//TODO: Damage AOE Effect
@@ -149,9 +150,8 @@ void AAuraProjectile::ProjectileExplode()
 		UAuraAbilitySystemLibrary::SetTargetEffectParamsASC(DamageEffectParams, TargetASC);
 		UAuraAbilitySystemLibrary::ApplyDamageEffect(DamageEffectParams);
 	}
-	
-	
+
 	Destroy();
-	//TODO: Destroy Projectile
+
 }
 
