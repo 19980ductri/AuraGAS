@@ -85,7 +85,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	FName WeaponTipSocketName;
-
+	
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	FName LeftHandSocketName;
 
@@ -94,7 +94,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	FName TailSocketName;
-
+	
 	UPROPERTY(BlueprintReadOnly)
 	bool bDead = false;
 
